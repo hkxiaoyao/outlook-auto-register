@@ -1407,10 +1407,11 @@ def _compute_stats(rows: list[dict[str, Any]]) -> dict[str, Any]:
         v = r.get("verify")
         if v is None:
             untested += 1
-        elif v.get("ok"):
+        elif _is_graph_readable(r):
             usable += 1
-        else:
+        elif r.get("batch_label") or r.get("batch_no"):
             dead += 1
+        # 无批次旧号的失败测活：概览不计入失活/未测，避免数字膨胀
         if r.get("created_at", "").startswith(today):
             today_new += 1
     return {

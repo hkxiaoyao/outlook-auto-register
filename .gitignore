@@ -28,9 +28,11 @@ debug_rescue_shots/
 *.png
 *.json.bak
 
-# 例外：保留 docs / webapp/static 下的必要资源
+# 例外：保留 docs / webapp/static / README 截图
 !webapp/static/index.html
 !docs/
+!assets/screenshots/
+!assets/screenshots/**
 
 # ═══════════════════════════════════════════════════════
 # 数据库（含账号、代理、批次数据）
