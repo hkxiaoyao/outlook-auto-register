@@ -160,6 +160,13 @@ Xem [`.env.example`](.env.example). Quan trọng: `CAPTCHA_RUN_API_KEY`, `HTTP_P
 
 Xem [`scripts/ANTIBAN.md`](scripts/ANTIBAN.md).
 
+## Links
+
+| Liên kết | Mô tả |
+|---|---|
+| [LINUX DO](https://linux.do/) | Thảo luận cộng đồng |
+| [中文](README.md) · [English](README_en.md) | Đa ngôn ngữ |
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=lxf746/outlook-auto-register&type=Date)](https://star-history.com/#lxf746/outlook-auto-register&Date)

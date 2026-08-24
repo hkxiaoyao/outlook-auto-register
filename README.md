@@ -273,6 +273,13 @@ outlook-auto-register/
 
 详见 [`scripts/ANTIBAN.md`](scripts/ANTIBAN.md)——代理选型、proofs 策略、并发与抖动、产出自检等。
 
+## Links
+
+| 链接 | 说明 |
+|---|---|
+| [LINUX DO](https://linux.do/) | 社区讨论 |
+| [English](README_en.md) · [Tiếng Việt](README_vi.md) | 多语言文档 |
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=lxf746/outlook-auto-register&type=Date)](https://star-history.com/#lxf746/outlook-auto-register&Date)

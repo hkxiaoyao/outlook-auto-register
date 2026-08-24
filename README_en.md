@@ -230,6 +230,13 @@ outlook-auto-register/
 
 See [`scripts/ANTIBAN.md`](scripts/ANTIBAN.md).
 
+## Links
+
+| Link | Description |
+|---|---|
+| [LINUX DO](https://linux.do/) | Community discussion |
+| [中文](README.md) · [Tiếng Việt](README_vi.md) | Translations |
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=lxf746/outlook-auto-register&type=Date)](https://star-history.com/#lxf746/outlook-auto-register&Date)
