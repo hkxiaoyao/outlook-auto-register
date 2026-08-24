@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Outlook 注册控制台</title>
+<style>
+  :root {
+    --bg:#fafafa; --bg-elev:#fff; --bg-muted:#f4f4f5; --bg-sidebar:#fbfbfc;
+    --bg-hover:rgba(24,24,27,.04); --bg-active:rgba(5,150,105,.08);
+    --bg-card:#fff; --bg-pane:#f4f4f5;
+    --border:#eaeaec; --border-strong:#d4d4d8; --border-subtle:#f0f0f2;
+    --fg:#18181b; --fg-2:#3f3f46; --fg-3:#71717a; --fg-4:#a1a1aa;
+    --brand:#059669; --brand-hover:#047857; --brand-fg:#fff;
+    --brand-soft:#ecfdf5; --brand-soft-2:#d1fae5;
+    --brand-ring:rgba(5,150,105,.15);
+    --success:#15803d; --success-bg:#ecfdf5; --success-border:#bbf7d0;
+    --warn:#b45309; --warn-bg:#fffbeb; --warn-border:#fde68a;
+    --danger:#b91c1c; --danger-bg:#fef2f2; --danger-border:#fecaca;
+    --info:#1e40af; --info-bg:#eff6ff; --info-border:#bfdbfe;
+    --neutral-bg:#f4f4f5; --neutral-border:#e4e4e7;
+    --chip-bg:#f4f4f5;
+    --r:8px; --r-sm:6px; --r-lg:12px; --sb-w:220px; --topbar-h:48px;
+    --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --shadow-sm:0 1px 2px rgba(15,15,15,.04),0 1px 1px rgba(0,0,0,.03);
+    --shadow-md:0 4px 12px rgba(15,15,15,.06),0 1px 2px rgba(0,0,0,.04);
+    --shadow-lg:0 12px 32px rgba(15,15,15,.10);
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif;
+    font-size:14px; -webkit-font-smoothing:antialiased; }
+  button,input,select,textarea { font:inherit; outline:none; }
+  ::placeholder { color:var(--fg-4); }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb { background:rgba(24,24,27,.12); border-radius:4px; }
+
+  .app { display:grid; grid-template-columns:var(--sb-w) 1fr; height:100vh; overflow:hidden; }
+
+  .sb { background:var(--bg-sidebar); border-right:1px solid var(--border); display:flex; flex-direction:column; min-height:0; }
+  .sb-brand { display:flex; align-items:center; gap:10px; padding:16px; }
+  .sb-logo { width:30px; height:30px; border-radius:8px; background:linear-gradient(135deg,#10b981,#059669);
+    color:#fff; display:grid; place-items:center; font-weight:700; font-size:13px; box-shadow:0 1px 2px rgba(5,150,105,.25); }
+  .sb-name { font-weight:650; font-size:14.5px; line-height:1.1; }
+  .sb-name small { display:block; font-weight:400; font-size:11px; color:var(--fg-3); margin-top:2px; }
+  .sb-group { padding:8px; }
+  .sb-title { font-size:10.5px; font-weight:600; letter-spacing:.5px; color:var(--fg-4); text-transform:uppercase; padding:8px 10px 4px; }
+  .nav { display:flex; align-items:center; gap:10px; padding:8px 11px; border-radius:7px; color:var(--fg-2);
+    font-size:13px; font-weight:500; cursor:pointer; border:0; background:transparent; width:100%; text-align:left; margin-bottom:2px; }
+  .nav:hover { background:var(--bg-hover); color:var(--fg); }
+  .nav.active { background:var(--brand-soft); color:var(--brand-hover); font-weight:600; }
+  .nav .ic { width:16px; text-align:center; opacity:.9; }
+  .nav .count { margin-left:auto; font-size:11px; font-family:var(--font-mono); color:var(--fg-4); }
+  .nav.active .count { color:var(--brand-hover); }
+  .sb-foot { margin-top:auto; border-top:1px solid var(--border); padding:12px 14px; font-size:11.5px; color:var(--fg-3); display:flex; flex-direction:column; gap:6px; }
+  .dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .dot.on { background:var(--success); } .dot.off { background:var(--danger); }
+
+  .main { display:flex; flex-direction:column; min-width:0; min-height:0; background:var(--bg); }
+  .topbar { height:var(--topbar-h); display:flex; align-items:center; padding:0 20px; border-bottom:1px solid var(--border); gap:12px; flex-shrink:0; background:var(--bg-card); }
+  .topbar h1 { margin:0; font-size:16px; font-weight:700; letter-spacing:-.02em; }
+  .topbar .sub { color:var(--fg-3); font-size:12.5px; }
+  .topbar .right { margin-left:auto; display:flex; gap:8px; align-items:center; }
+  .content { flex:1; min-height:0; overflow:hidden; padding:16px; display:flex; flex-direction:column; }
+  .section { display:none; flex:1; min-height:0; overflow:auto; }
+  .section.active { display:block; }
+  .section.fill.active { display:flex; flex-direction:column; overflow:hidden; }
+
+  .btn, .pool-btn { display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--border);
+    background:var(--bg-card); color:var(--fg-2); font-size:13px; font-weight:500; border-radius:var(--r-sm); cursor:pointer; white-space:nowrap; }
+  .btn:hover:not(:disabled), .pool-btn:hover:not(:disabled) { background:var(--bg-hover); color:var(--fg); }
+  .btn:disabled, .pool-btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn.primary, .pool-btn-primary { background:var(--brand); color:#fff; border-color:var(--brand); font-weight:600; box-shadow:0 1px 2px rgba(5,150,105,.25); }
+  .btn.primary:hover:not(:disabled), .pool-btn-primary:hover:not(:disabled) { background:var(--brand-hover); }
+  .btn.ghost { background:transparent; border-color:transparent; color:var(--fg-2); }
+  .btn.ghost:hover { background:var(--bg-hover); color:var(--fg); }
+  .btn.danger, .pool-btn.danger { color:var(--danger); border-color:var(--danger-border); }
+  .btn.danger:hover:not(:disabled), .pool-btn.danger:hover:not(:disabled) { background:var(--danger-bg); }
+  .btn.sm { height:30px; padding:0 10px; font-size:12px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .hint { font-size:12px; color:var(--fg-3); margin-top:10px; line-height:1.6; }
+  code { background:var(--bg-muted); padding:1px 6px; border-radius:5px; font-size:12px; font-family:var(--font-mono); }
+
+  .card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-sm); }
+  .card.pad { padding:18px 20px; }
+  .card h2 { margin:0 0 14px; font-size:14.5px; font-weight:650; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:16px; }
+  .stat { padding:16px 18px; }
+  .stat .lbl { font-size:12px; color:var(--fg-3); }
+  .stat .num { font-size:26px; font-weight:700; letter-spacing:-.5px; margin-top:8px; }
+
+  input[type=text],input[type=password],input[type=number],select,textarea {
+    width:100%; background:var(--bg-card); border:1px solid var(--border); color:var(--fg);
+    padding:8px 11px; border-radius:9px; font-size:13px; min-height:38px; }
+  input[type=password] { -webkit-text-security:disc; font-family:var(--font-mono); letter-spacing:.05em; }
+  input:focus,select:focus,textarea:focus { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-ring); }
+  textarea { resize:vertical; font-family:var(--font-mono); font-size:12px; min-height:auto; }
+  .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  @media (max-width:900px){ .grid { grid-template-columns:1fr; } }
+  .switches { display:flex; flex-wrap:wrap; gap:18px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; }
+  .switch input { width:16px; height:16px; accent-color:var(--brand); }
+
+  /* 注册中心：左配置 / 右进度 */
+  .register-page-layout {
+    flex:1; min-height:0; display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(340px,42%);
+    gap:16px; align-items:stretch;
+  }
+  .register-panel, .register-log-panel {
+    display:flex; flex-direction:column; min-height:0;
+    border:1px solid var(--border); border-radius:12px; background:var(--bg-card); overflow:hidden;
+  }
+  .register-panel-scroll { flex:1; min-height:0; overflow-y:auto; }
+  .register-panel-foot {
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:12px 16px; border-top:1px solid var(--border-subtle); background:var(--bg-pane); flex-shrink:0;
+  }
+  .register-block { border-bottom:1px solid var(--border); padding-bottom:4px; }
+  .register-run-params { padding-bottom:8px; }
+  .register-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:14px 16px 8px; }
+  .register-section-head h3 { margin:0; font-size:14px; font-weight:600; }
+  .register-section-meta { font-size:12px; color:var(--fg-3); }
+  .register-params-grid {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px 14px; padding:0 16px 14px; align-items:start;
+  }
+  .register-params-grid .field { min-width:0; display:flex; flex-direction:column; }
+  .register-params-grid .field > span {
+    display:block; height:18px; line-height:18px; margin-bottom:6px;
+    color:var(--fg-3); font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .register-params-grid .field.span-2 { grid-column:1 / -1; }
+  .register-params-grid .field input,
+  .register-params-grid .field select { width:100%; min-height:38px; }
+  .register-inline-hint { margin:0 16px 14px; font-size:12px; color:var(--fg-4); line-height:1.5; }
+  .register-mode-toggle { display:inline-flex; align-items:center; gap:8px; margin:0 16px 14px; font-size:13px; font-weight:600; color:var(--fg-2); cursor:pointer; }
+  .register-mode-toggle input { width:16px; height:16px; accent-color:var(--brand); }
+
+  .register-log-head {
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg-pane); flex-shrink:0;
+  }
+  .register-log-head strong { font-size:13px; }
+  .register-batch-stats { display:flex; gap:12px; font-size:12px; color:var(--fg-3); font-variant-numeric:tabular-nums; }
+  .register-batch-stats b { color:var(--fg); }
+  .register-log-live { font-size:12px; font-weight:500; color:var(--brand-hover); }
+  .register-log-panel {
+    max-height: calc(100vh - 120px);
+  }
+  .register-log-head-main {
+    display:flex; flex-direction:column; gap:4px; min-width:0;
+  }
+  .register-log-head-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .register-log-copy-btn {
+    border:1px solid var(--border); background:var(--bg-pane); color:var(--fg-3);
+    border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;
+  }
+  .register-log-copy-btn:hover { border-color:var(--brand); color:var(--brand-hover); }
+  .register-log-empty {
+    margin:0; padding:12px 0; font-size:13px; color:var(--fg-4); line-height:1.55;
+  }
+  .progress-section { flex:0 0 auto; border-top:1px solid var(--border); background:var(--bg-pane); }
+  .progress-section .register-log-head { border-bottom:1px solid var(--border-subtle); }
+  .progress-wrap { flex:0 0 auto; max-height:min(28vh, 220px); min-height:100px; overflow:auto; }
+  .register-log-body { flex:1; min-height:min(42vh, 360px); overflow:auto; display:flex; flex-direction:column; }
+  .console {
+    height:100%; min-height:140px; padding:10px 14px; overflow-y:auto;
+    font-family:var(--font-mono); font-size:12px; line-height:1.7; white-space:pre-wrap; word-break:break-all;
+    background:var(--bg-card); color:var(--fg-2);
+  }
+  .console .l-INFO { color:var(--fg-2); } .console .l-ERROR { color:var(--danger); } .console .l-WARNING { color:var(--warn); }
+  .console .ts { color:var(--fg-4); margin-right:6px; }
+
+  /* 账号池：工具栏 + 表 */
+  .pool-page {
+    flex:1; display:flex; flex-direction:column; min-height:0;
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px; overflow:hidden;
+  }
+  /* 代理池内容多：整页可滚动，避免底部「代理列表 / 账号绑定」被裁切 */
+  #sec-proxies.active {
+    display:flex; flex-direction:column; min-height:0; overflow:hidden;
+  }
+  #sec-proxies .pool-page {
+    flex:1; min-height:0; overflow-y:auto; overflow-x:hidden;
+  }
+  #sec-proxies .pool-page .tbl-wrap {
+    flex:none; min-height:220px; max-height:min(50vh, 480px);
+    border:1px solid var(--border-subtle); border-radius:8px; margin:0 14px 12px;
+  }
+  #sec-proxies .pool-page .card.pad { flex-shrink:0; margin:0 14px 12px; }
+  #sec-proxies .stats { flex-shrink:0; padding:14px 14px 0; margin-bottom:0; }
+  #sec-proxies .pool-cockpit-toolbar { flex-shrink:0; margin:0 14px 10px; border:1px solid var(--border-subtle); border-radius:8px; }
+  #sec-proxy-stats.active {
+    display:flex; flex-direction:column; min-height:0; overflow:hidden;
+  }
+  #sec-proxy-stats .stats-page {
+    flex:1; min-height:0; overflow-y:auto; padding-bottom:16px;
+  }
+  #sec-proxy-stats .stats { padding:0 0 12px; margin-bottom:0; }
+  .proxy-chart-wrap {
+    margin:0 0 12px; padding:16px 18px 12px;
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+  }
+  .proxy-chart-head { display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .proxy-chart-head h2 { margin:0; font-size:14.5px; font-weight:650; }
+  .proxy-chart-stage { position:relative; }
+  .proxy-chart-canvas {
+    width:100%; height:260px; display:block; background:var(--bg-pane);
+    border:1px solid var(--border-subtle); border-radius:8px; cursor:crosshair;
+  }
+  .proxy-chart-empty {
+    height:260px; display:flex; align-items:center; justify-content:center;
+    color:var(--fg-3); font-size:13px; border:1px dashed var(--border); border-radius:8px;
+    background:var(--bg-pane);
+  }
+  .proxy-chart-tooltip {
+    position:absolute; pointer-events:none; z-index:5; display:none;
+    min-width:160px; max-width:280px; padding:10px 12px;
+    background:var(--bg-card); border:1px solid var(--border); border-radius:10px;
+    box-shadow:var(--shadow-md); font-size:12px; line-height:1.55;
+  }
+  .proxy-chart-tooltip.show { display:block; }
+  .proxy-chart-tooltip .tt-date { font-weight:650; margin-bottom:6px; color:var(--fg); }
+  .proxy-chart-tooltip .tt-row { display:flex; align-items:center; gap:8px; justify-content:space-between; }
+  .proxy-chart-tooltip .tt-name { display:flex; align-items:center; gap:6px; color:var(--fg-2); min-width:0; }
+  .proxy-chart-tooltip .tt-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .proxy-chart-tooltip .tt-val { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .proxy-chart-tooltip .tt-vol { margin-top:8px; padding-top:8px; border-top:1px solid var(--border-subtle); color:var(--fg-3); }
+  .proxy-chart-legend {
+    display:flex; flex-wrap:wrap; gap:8px 14px; margin-top:12px; font-size:12px;
+  }
+  .proxy-chart-legend .lg-item {
+    display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:8px;
+    border:1px solid var(--border-subtle); background:var(--bg-pane); cursor:pointer; user-select:none;
+  }
+  .proxy-chart-legend .lg-item.off { opacity:.38; text-decoration:line-through; }
+  .proxy-chart-legend .lg-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+  .proxy-chart-legend .lg-vol-hint { margin-left:auto; color:var(--fg-4); font-size:11px; }
+  .proxy-empty-banner {
+    margin:0 14px 12px; padding:14px 16px; border-radius:10px;
+    border:1px dashed var(--border); background:color-mix(in srgb, var(--brand) 6%, var(--bg-card));
+    font-size:13px; line-height:1.65; color:var(--fg-2);
+  }
+  .proxy-empty-banner strong { color:var(--fg); }
+  .pool-cockpit-toolbar {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px; border-bottom:1px solid var(--border-subtle); flex-shrink:0;
+    flex-wrap:nowrap; overflow-x:auto;
+  }
+  .pool-search-field {
+    display:flex; align-items:center; gap:7px; height:32px; padding:0 10px;
+    width:220px; flex-shrink:0; background:var(--bg-pane); border:1px solid var(--border); border-radius:8px;
+  }
+  .pool-search-field:focus-within { background:var(--bg-card); border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-ring); }
+  .pool-search-field input { border:0; background:transparent; box-shadow:none !important; padding:0; min-height:0; height:auto; }
+  .pool-search-icon { color:var(--fg-4); flex-shrink:0; }
+  .pool-compact-select { width:auto; min-width:108px; height:32px; min-height:32px; padding:0 28px 0 10px; font-size:12px; border-radius:8px; }
+  .pool-toolbar-sp { flex:1; min-width:8px; }
+  .sel-chip { color:var(--fg-3); font-size:12px; white-space:nowrap; flex-shrink:0; }
+  .sel-chip b { color:var(--fg); font-weight:650; }
+  .pool-btn { height:32px; padding:0 10px; font-size:12px; }
+
+  .tbl-wrap { overflow:auto; border:1px solid var(--border); border-radius:var(--r-lg); }
+  .pool-page .tbl-wrap { flex:1; min-height:0; border:0; border-radius:0; }
+  .pool-page table { width:100%; min-width:1180px; border-collapse:collapse; font-size:12.5px; table-layout:auto; }
+  .pool-page table thead th { white-space:nowrap; word-break:keep-all; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { text-align:left; font-weight:600; color:var(--fg-3); font-size:12px;
+    padding:9px 12px; border-bottom:1px solid var(--border); background:color-mix(in srgb,var(--bg-pane) 70%,var(--bg-card)); position:sticky; top:0; z-index:1; }
+  td { padding:8px 12px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; }
+  tr:hover td { background:var(--bg-hover); }
+  tr:last-child td { border-bottom:0; }
+  .mono { font-family:var(--font-mono); font-size:11.5px; }
+  .cell-time { color:var(--fg-2); font-variant-numeric:tabular-nums; white-space:nowrap; font-size:12px; }
+  .cell-age { color:var(--fg-3); white-space:nowrap; font-size:12px; }
+  .cell-relogin { color:var(--fg-2); white-space:nowrap; font-size:12px; text-align:center; }
+  .cell-batch { font-weight:650; color:var(--brand-hover); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  input[type=checkbox].ck { width:15px; height:15px; accent-color:var(--brand); cursor:pointer; }
+
+  .badge { display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:600; padding:2px 7px;
+    border-radius:999px; border:1px solid transparent; white-space:nowrap; }
+  .badge.success { background:var(--success-bg); color:var(--success); border-color:var(--success-border); }
+  .badge.warn { background:var(--warn-bg); color:var(--warn); border-color:var(--warn-border); }
+  .badge.danger { background:var(--danger-bg); color:var(--danger); border-color:var(--danger-border); }
+  .badge.info { background:var(--info-bg); color:var(--info); border-color:var(--info-border); }
+  .badge.neutral { background:var(--neutral-bg); color:var(--fg-2); border-color:var(--neutral-border); }
+  .badge.brand { background:var(--brand-soft); color:var(--brand-hover); border-color:var(--brand-soft-2); }
+  .tag { display:inline-flex; align-items:center; font-size:10px; padding:1px 6px; border-radius:4px;
+    background:var(--chip-bg); color:var(--fg-2); border:1px solid var(--border); margin-right:3px; }
+
+  .st { font-size:10.5px; padding:2px 8px; border-radius:999px; font-weight:600; white-space:nowrap; }
+  .st.wait { background:var(--neutral-bg); color:var(--fg-3); }
+  .st.run { background:var(--info-bg); color:var(--info); }
+  .st.ok { background:var(--success-bg); color:var(--success); }
+  .st.err { background:var(--danger-bg); color:var(--danger); }
+
+  .cell-main { display:flex; align-items:center; gap:4px; min-width:0; }
+  .cell-main .val { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pwd-mask { letter-spacing:.2em; color:var(--fg-3); user-select:none; }
+  .icon-btn {
+    flex-shrink:0; width:22px; height:22px; padding:0; border:0; border-radius:6px;
+    background:transparent; color:var(--fg-4); cursor:pointer; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .icon-btn svg { width:13px; height:13px; display:block; }
+  .icon-btn:hover { color:var(--brand-hover); background:var(--brand-soft); }
+  .act-row { display:flex; flex-direction:row; align-items:center; gap:2px; }
+  .act-row .icon-btn { width:24px; height:24px; }
+  .act-row .icon-btn.is-info:hover { color:#059669; background:var(--success-bg); }
+  .act-row .icon-btn.is-query:hover { color:#2563eb; background:var(--info-bg); }
+
+  .tok-main { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid transparent; white-space:nowrap; }
+  .tok-main.ok { background:var(--success-bg); color:var(--success); border-color:var(--success-border); }
+  .tok-main.bad { background:var(--danger-bg); color:var(--danger); border-color:var(--danger-border); }
+  .tok-main.unk { background:var(--neutral-bg); color:var(--fg-3); border-color:var(--neutral-border); }
+  .rec-none { color:var(--fg-4); font-size:12px; }
+
+  .pager { display:flex; align-items:center; gap:10px; justify-content:flex-end; padding:10px 14px; font-size:12.5px; color:var(--fg-3); border-top:1px solid var(--border-subtle); flex-shrink:0; }
+  .empty { text-align:center; color:var(--fg-3); padding:34px; font-size:13px; }
+  .wip { font-size:10.5px; padding:1px 8px; border-radius:10px; background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-border); font-weight:600; }
+
+  .msgbox { font-size:12.5px; padding:10px 12px; border-radius:var(--r); margin-top:12px; display:none; line-height:1.6; }
+  .msgbox.show { display:block; }
+  .msgbox.ok { background:var(--success-bg); border:1px solid var(--success-border); color:var(--success); }
+  .msgbox.err { background:var(--danger-bg); border:1px solid var(--danger-border); color:var(--danger); }
+  .msgbox.warn { background:var(--warn-bg); border:1px solid var(--warn-border); color:var(--warn); }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--fg); color:#fff;
+    border:0; padding:10px 18px; border-radius:10px; font-size:13px; opacity:0;
+    transition:.25s; pointer-events:none; z-index:100; box-shadow:var(--shadow-md); }
+  .toast.show { opacity:1; }
+
+  .modal-bg { position:fixed; inset:0; background:rgba(15,23,42,.35); backdrop-filter:blur(3px); display:none;
+    align-items:center; justify-content:center; z-index:80; padding:20px; }
+  .modal-bg.show { display:flex; }
+  .modal { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; width:100%; max-width:560px;
+    box-shadow:var(--shadow-lg); overflow:hidden; min-width:0; }
+  .modal-h { padding:12px 16px; border-bottom:1px solid var(--border); font-weight:650; display:flex; align-items:center; }
+  .modal-b { padding:12px 16px; min-width:0; }
+  .modal-f { padding:10px 16px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  .modal.modal-lg { max-width:640px; }
+  .modal.modal-detail { max-width:640px; max-height:70vh; display:flex; flex-direction:column; }
+  .modal.modal-detail .modal-b { overflow:auto; flex:1; min-height:0; padding-top:8px; }
+  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; min-width:0; }
+  .detail-grid .span-2 { grid-column:1 / -1; }
+  .drow { display:grid; grid-template-columns:76px minmax(0,1fr) 24px; gap:6px; align-items:center; padding:6px 8px;
+    background:var(--bg-pane); border:1px solid var(--border-subtle); border-radius:var(--r); min-width:0; }
+  .dlabel { font-size:12px; color:var(--fg-3); }
+  .dval { font-family:var(--font-mono); font-size:11.5px; color:var(--fg); min-width:0; overflow:hidden;
+    white-space:nowrap; text-overflow:ellipsis; }
+  .detail-section { font-size:11px; font-weight:600; color:var(--fg-4); letter-spacing:.3px; margin:10px 0 4px; }
+  .detail-section:first-child { margin-top:0; }
+  .detail-tok { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .detail-tok .pill { font-size:11.5px; padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--bg-muted); }
+  .detail-tok .pill.on { border-color:var(--success-border); color:var(--success); background:var(--success-bg); }
+  .detail-tok .pill.off { border-color:var(--danger-border); color:var(--danger); background:var(--danger-bg); }
+  .detail-tok .pill.na { color:var(--fg-4); }
+
+  @media (max-width:1100px) {
+    .register-page-layout { grid-template-columns:1fr; }
+    .register-panel, .register-log-panel { max-height:none; }
+    .progress-wrap { flex:none; max-height:280px; }
+  }
+  @media (max-width:720px) {
+    .register-params-grid { grid-template-columns:1fr; }
+    .app { grid-template-columns:1fr; }
+    .sb { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sb">
+    <div class="sb-brand">
+      <div class="sb-logo">OA</div>
+      <div class="sb-name">Outlook 控制台<small>纯 API 注册 · 后台</small></div>
+    </div>
+    <div class="sb-group">
+      <div class="sb-title">工作台</div>
+      <button class="nav active" data-sec="overview"><span class="ic">▤</span> 概览</button>
+      <button class="nav" data-sec="register"><span class="ic">✦</span> 批次注册</button>
+      <button class="nav" data-sec="proxies"><span class="ic">⇄</span> 代理池 <span class="count" id="navProxyCount">0</span></button>
+      <button class="nav" data-sec="proxy-stats"><span class="ic">◔</span> 代理统计</button>
+      <button class="nav" data-sec="pool"><span class="ic">▦</span> 账号池 <span class="count" id="navPoolCount">0</span></button>
+      <button class="nav" data-sec="verify"><span class="ic">◈</span> 测活</button>
+      <button class="nav" data-sec="ops"><span class="ic">◐</span> IMAP / 保活</button>
+    </div>
+    <div class="sb-foot">
+      <div><span class="dot off" id="footDot"></span><span id="footHealth">检测中…</span></div>
+      <div id="footEngine" style="color:var(--fg-4);">引擎能力检测中</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">概览</h1>
+      <span class="sub" id="pageSub">账号与批次总览</span>
+      <div class="right">
+        <button class="btn ghost sm" id="globalRefresh">刷新</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <section class="section active" id="sec-overview">
+        <div class="stats" id="statCards"></div>
+        <div class="card pad">
+          <h2>注册批次</h2>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>批次</th><th>时间</th><th>数量</th><th>并发</th><th>模式</th><th>状态</th><th>成功/失败</th></tr></thead>
+              <tbody id="jobsBody"><tr><td colspan="7" class="empty">暂无批次</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section fill" id="sec-register">
+        <div class="register-page-layout">
+          <section class="register-panel">
+            <div class="register-panel-scroll">
+              <div class="register-block">
+                <div class="register-section-head">
+                  <h3>注册资源</h3>
+                  <span class="register-section-meta">代理与打码，保存在本机</span>
+                </div>
+                <div class="register-params-grid">
+                    <label class="field span-2">
+                    <span>代理</span>
+                    <label class="switch" style="margin-bottom:8px;"><input type="checkbox" id="useProxyPool" checked /> 使用代理池（SQLite，注册/重登按号分配）</label>
+                    <input type="text" id="proxy" placeholder="备用代理 host:port:user:pass-US-{sid}（保存时自动写入数据库）" autocomplete="off" />
+                  </label>
+                  <label class="field span-2"><span>captcha.run Key</span><input type="password" id="captchaKey" placeholder="captcha.run Bearer key" autocomplete="off" spellcheck="false" /></label>
+                </div>
+              </div>
+              <div class="register-run-params">
+                <div class="register-section-head">
+                  <h3>运行参数</h3>
+                  <span class="register-section-meta">数量、并发、产出格式</span>
+                </div>
+                <div class="register-params-grid">
+                  <label class="field"><span>注册数量</span><input type="number" id="count" value="1" min="1" max="20" /></label>
+                  <label class="field"><span>并发度</span><input type="number" id="concurrency" value="1" min="1" max="20" /></label>
+                  <label class="field"><span>PX 模式</span><select id="pxMode"></select></label>
+                  <label class="field"><span>邮箱后缀</span><select id="domain"></select></label>
+                  <label class="field"><span>国家代码</span><input type="text" id="country" value="US" /></label>
+                  <label class="field"><span>邮箱前缀（留空随机）</span><input type="text" id="prefix" placeholder="随机" /></label>
+                  <label class="field span-2"><span>产出格式</span><select id="tokenMode"></select></label>
+                  <label class="field span-2"><span>批次名称（可选）</span><input type="text" id="batchLabel" placeholder="留空自动生成，如 0815-US-outlook-10x-G6" autocomplete="off" /></label>
+                </div>
+                <label class="register-mode-toggle"><span>仅注册不登录</span><input type="checkbox" id="skipLogin" /></label>
+                <p class="register-inline-hint">单次真实注册上限 20；产出写入 <code>accounts/</code>。</p>
+              </div>
+            </div>
+            <div class="register-panel-foot">
+              <button class="btn primary" id="startBtn">开始批次注册</button>
+              <span class="hint" id="cfgHint" style="margin:0;"></span>
+            </div>
+          </section>
+
+          <section class="register-log-panel">
+            <div class="register-log-head">
+              <div class="register-log-head-main">
+                <strong>注册日志</strong>
+                <div class="register-batch-stats" id="jobBadge"></div>
+              </div>
+              <div class="register-log-head-actions">
+                <button type="button" class="register-log-copy-btn" id="logCopyBtn" title="复制全部日志" style="display:none;">复制</button>
+                <span class="register-log-live" id="logLive" style="display:none;">实时更新中…</span>
+              </div>
+            </div>
+            <div class="register-log-body">
+              <div class="console" id="console"><p class="register-log-empty" id="logEmpty">配置完成后点击「开始批次注册」，代理预检、PX、注册各阶段会实时显示在这里</p></div>
+            </div>
+            <div class="progress-section">
+              <div class="register-log-head">
+                <strong>账号进度</strong>
+                <div class="register-batch-stats">
+                  <span>总 <b id="nTotal">0</b></span>
+                  <span style="color:var(--success)">成功 <b id="nOk">0</b></span>
+                  <span style="color:var(--danger)">失败 <b id="nErr">0</b></span>
+                  <span style="color:var(--brand-hover)">进行中 <b id="nRun">0</b></span>
+                </div>
+              </div>
+              <div class="progress-wrap tbl-wrap" style="border:0;border-radius:0;">
+                <table>
+                  <thead><tr><th style="width:40px;">#</th><th>状态</th><th>邮箱</th><th>密码</th><th>refresh_token</th><th>失败原因</th></tr></thead>
+                  <tbody id="progressBody"><tr><td colspan="6" class="empty">开始注册后，各账号状态会显示在这里</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="batchSummary" class="msgbox" style="margin:0 14px 10px;"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="section fill" id="sec-proxies">
+        <div class="pool-page">
+          <div class="stats" id="proxyStatCards"></div>
+          <div class="proxy-empty-banner" id="proxyEmptyBanner" style="display:none;">
+            <strong>代理池为空。</strong>请点击「添加代理」导入模板，或在「批次注册」页填写代理后点「开始」——会自动写入 SQLite。
+            注册页勾选「使用代理池」后才会按号分配并统计成功率。
+          </div>
+          <div class="card pad" style="margin-bottom:12px;">
+            <h2 style="margin-bottom:10px;">池设置</h2>
+            <div class="row">
+              <label class="field" style="min-width:160px;"><span>分配策略</span>
+                <select id="proxyStrategy">
+                  <option value="round_robin">轮询 round_robin</option>
+                  <option value="least_used">最少使用 least_used</option>
+                  <option value="random">随机 random</option>
+                </select>
+              </label>
+              <label class="switch"><input type="checkbox" id="proxyRequireHealthy" /> 仅使用预检通过 (ok)</label>
+              <label class="switch"><input type="checkbox" id="proxySticky" checked /> 按账号 sticky 绑定</label>
+              <button class="btn sm" id="proxySaveSettings">保存设置</button>
+            </div>
+            <p class="hint" style="margin-top:8px;">存储：<code>SQLite</code> · <code id="proxyPoolFile">—</code>。成功率请到侧栏「代理统计」查看。</p>
+          </div>
+          <div class="pool-cockpit-toolbar">
+            <select class="pool-compact-select" id="proxyFilterProvider">
+              <option value="">全部代理商</option>
+            </select>
+            <button class="pool-btn pool-btn-primary" id="proxyBtnAdd">添加代理</button>
+            <button class="pool-btn" id="proxyBtnCheckAll">全部预检</button>
+            <button class="pool-btn" id="proxyBtnCheckSel">预检选中</button>
+            <button class="pool-btn danger" id="proxyBtnDelSel">删除选中</button>
+            <div class="pool-toolbar-sp"></div>
+            <button class="pool-btn" id="proxyBtnRefresh">刷新</button>
+            <button class="pool-btn" id="proxyBtnBackfillCountry" title="从模板推断国家">回填国家</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th style="width:34px;"><input type="checkbox" class="ck" id="proxyCkAll" /></th>
+                <th>标签</th>
+                <th style="width:100px;">代理商</th>
+                <th style="width:52px;">国家</th>
+                <th>模板（脱敏）</th>
+                <th style="width:56px;">{sid}</th>
+                <th style="width:72px;">状态</th>
+                <th style="width:110px;">出口 IP</th>
+                <th style="width:88px;">分配/成功/失败</th>
+                <th style="width:120px;">最近预检</th>
+                <th style="width:56px;">启用</th>
+                <th style="width:72px;">操作</th>
+              </tr></thead>
+              <tbody id="proxyBody"><tr><td colspan="12" class="empty">加载中…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="card pad" style="margin-top:12px;">
+            <h2 style="margin-bottom:10px;">账号绑定 <span class="hint" style="font-weight:400;">（注册/重登成功后自动写入）</span></h2>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>邮箱</th><th>代理</th><th>会话（脱敏）</th><th>用途</th><th>绑定时间</th><th style="width:72px;">操作</th></tr></thead>
+                <tbody id="proxyBindBody"><tr><td colspan="6" class="empty">暂无绑定</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-proxy-stats">
+        <div class="stats-page">
+          <div class="stats" id="proxyAnalyticsStatCards"></div>
+          <div class="proxy-chart-wrap">
+            <div class="proxy-chart-head">
+              <h2>成功率趋势</h2>
+              <div class="pool-toolbar-sp"></div>
+              <select class="pool-compact-select" id="statsGroupBy" title="曲线分组">
+                <option value="overview">总览</option>
+                <option value="provider" selected>按代理商</option>
+                <option value="country">按代理国</option>
+                <option value="provider_country">代理商×国家</option>
+              </select>
+              <select class="pool-compact-select" id="statsFilterProvider">
+                <option value="">全部代理商</option>
+              </select>
+              <select class="pool-compact-select" id="statsFilterCountry">
+                <option value="">全部代理国</option>
+              </select>
+              <select class="pool-compact-select" id="statsFilterRegCountry">
+                <option value="">全部注册国</option>
+              </select>
+              <select class="pool-compact-select" id="statsAnalyticsDays" title="统计时间范围">
+                <option value="7">最近 7 天</option>
+                <option value="30" selected>最近 30 天</option>
+                <option value="90">最近 90 天</option>
+              </select>
+              <button class="btn sm" id="statsBtnRefresh">刷新</button>
+            </div>
+            <div class="proxy-chart-stage" id="proxyChartStage">
+              <canvas id="proxyRateChart" class="proxy-chart-canvas" height="260"></canvas>
+              <div id="proxyChartEmpty" class="proxy-chart-empty" style="display:none;">暂无事件数据，完成注册/重登后会自动生成曲线</div>
+              <div id="proxyChartTooltip" class="proxy-chart-tooltip"></div>
+            </div>
+            <div id="proxyChartLegend" class="proxy-chart-legend"></div>
+          </div>
+          <div class="card pad">
+            <h2 style="margin-bottom:10px;">明细表 <span class="hint" style="font-weight:400;">代理商 × 代理国 × 注册国</span></h2>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr>
+                  <th>代理商</th>
+                  <th style="width:64px;">代理国</th>
+                  <th style="width:64px;">注册国</th>
+                  <th style="width:56px;">次数</th>
+                  <th style="width:56px;">成功</th>
+                  <th style="width:56px;">失败</th>
+                  <th style="width:72px;">成功率</th>
+                </tr></thead>
+                <tbody id="proxyAnalyticsBody"><tr><td colspan="7" class="empty">暂无统计数据</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section fill" id="sec-pool">
+        <div class="pool-page">
+          <div class="pool-cockpit-toolbar">
+            <div class="pool-search-field">
+              <span class="pool-search-icon">⌕</span>
+              <input type="text" id="poolSearch" placeholder="搜索邮箱" />
+            </div>
+            <select class="pool-compact-select" id="filterView">
+              <option value="all">全部状态</option>
+              <option value="usable">Graph 可用</option>
+              <option value="dead">令牌失效</option>
+              <option value="untested">未测活</option>
+              <option value="without">无 Token</option>
+              <option value="dual">双令牌</option>
+            </select>
+            <select class="pool-compact-select" id="filterBatch">
+              <option value="all">全部批次</option>
+            </select>
+            <span class="sel-chip" id="selCount">已选 <b>0</b></span>
+            <div class="pool-toolbar-sp"></div>
+            <button class="pool-btn" id="btnImport">导入</button>
+            <select class="pool-compact-select" id="exportFmt"></select>
+            <button class="pool-btn" id="btnExport">导出</button>
+            <button class="pool-btn" id="btnCopySel">复制</button>
+            <button class="pool-btn" id="btnVerifySel" title="重测选中或全部有 Token 的号，含已标记可读信的">测活</button>
+            <button class="pool-btn" id="btnRescueSel" title="rescue_login：用账密重新 OAuth 拿 Graph refresh_token">重登</button>
+            <button class="pool-btn danger" id="btnDeleteSel">删除</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th style="width:34px;"><input type="checkbox" class="ck" id="ckAll" /></th>
+                <th>邮箱</th>
+                <th style="width:72px;">密码</th>
+                <th style="width:120px;">恢复邮箱</th>
+                <th style="width:100px;">读信状态</th>
+                <th style="width:56px;">批次</th>
+                <th style="width:96px;">注册时间</th>
+                <th style="width:72px;">存活</th>
+                <th style="width:48px;" title="rescue_login 累计次数">重登</th>
+                <th style="width:96px;">更新</th>
+                <th style="width:88px;">备注</th>
+                <th style="width:64px;">操作</th>
+              </tr></thead>
+              <tbody id="poolBody"><tr><td colspan="12" class="empty">加载中…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <span id="pageInfo"></span>
+            <button class="btn sm ghost" id="prevPage">上一页</button>
+            <button class="btn sm ghost" id="nextPage">下一页</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-verify">
+        <div class="card pad">
+          <h2>四段式可用性校验（单条）</h2>
+          <div class="hint" style="margin-top:0;">粘贴一条 <code>email----password----client_id----refresh_token</code>，判定 graph / outlook_rest / imap 是否可读信。账号池批量测活会<b>重测已标记可读信的号</b>，用来确认有没有死；没有 Token 的才测不了。</div>
+          <div style="margin-top:12px;"><label class="field"><span style="display:block;height:18px;line-height:18px;margin-bottom:6px;color:var(--fg-3);font-size:12px;font-weight:600;">四段式 combo</span><input type="text" id="verCombo" placeholder="email----password----client_id----M.C5xx..." /></label></div>
+          <div class="grid" style="margin-top:12px;">
+            <div><label class="field"><span style="display:block;height:18px;line-height:18px;margin-bottom:6px;color:var(--fg-3);font-size:12px;font-weight:600;">或 · 邮箱</span><input type="text" id="verEmail" placeholder="you@outlook.com" /></label></div>
+            <div><label class="field"><span style="display:block;height:18px;line-height:18px;margin-bottom:6px;color:var(--fg-3);font-size:12px;font-weight:600;">或 · refresh_token</span><input type="text" id="verToken" placeholder="M.C5xx..." /></label></div>
+            <div><label class="field"><span style="display:block;height:18px;line-height:18px;margin-bottom:6px;color:var(--fg-3);font-size:12px;font-weight:600;">代理（可选）</span><input type="text" id="verProxy" placeholder="留空直连" /></label></div>
+          </div>
+          <div class="row" style="margin-top:14px;">
+            <label class="switch"><input type="checkbox" id="verImap" checked /> 同时测 IMAP（仅老号会通）</label>
+            <button class="btn primary" id="verifyBtn">校验可用性</button>
+          </div>
+          <div id="verResult" style="margin-top:14px; display:none;">
+            <div class="row" style="gap:8px; margin-bottom:8px;">
+              <span class="st wait" id="vGraph">Graph 读信</span><span class="st wait" id="vRest">Outlook REST</span><span class="st wait" id="vImap">IMAP</span>
+            </div>
+            <div class="msgbox show" id="vSummary" style="display:block;"></div>
+            <div class="hint" id="vScope" style="word-break:break-all;"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sec-ops">
+        <div class="card pad">
+          <h2>IMAP / 保活 <span class="wip">可选 · 非必需</span></h2>
+          <div class="hint" style="margin-top:0;">防封要点（详见 <code>scripts/ANTIBAN.md</code>）：<b>固定住宅/移动 IP</b>、一个 IP 只注册/保活少量号；<b>注册后冷却</b>，别立刻高频调用；<b>低频保活</b>（每号 2–3 天一次即可）；<b>默认走 Graph 读信、不强开 IMAP</b>。</div>
+          <div class="hint" style="margin-top:8px;">保活动作：<code>refresh_token → access_token → GET /me + 列 1 封信 → 轮换新 refresh_token 回写</code>（accounts.txt / accounts_dual.txt / 账号 json）。可对「账号池」勾选后点 <b>保活选中</b>，或在此保活全部。</div>
+          <div class="row" style="margin-top:14px;">
+            <button class="btn" id="imapEnableBtn">开启 IMAP（尽力而为）</button>
+            <button class="btn primary" id="keepaliveAllBtn">保活全部</button>
+            <button class="btn" id="replenishBtn">回补收码池</button>
+            <button class="btn" id="dbBackupBtn">备份数据库</button>
+          </div>
+          <div class="hint" style="margin-top:8px;">数据存储：<code>accounts/outlook.db</code>（账号 + 代理池 + 批次 + 元数据）。备份输出到 <code>accounts/backups/</code>。</div>
+          <div class="msgbox" id="opsMsg"></div>
+          <div class="tbl-wrap" id="kaWrap" style="margin-top:12px; display:none;">
+            <table>
+              <thead><tr><th>邮箱</th><th>存活</th><th>profile</th><th>信件</th><th>轮换</th><th>详情</th></tr></thead>
+              <tbody id="kaBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="proxyAddModal">
+  <div class="modal">
+    <div class="modal-h">添加代理模板</div>
+    <div class="modal-b">
+      <div class="hint" style="margin-top:0;">每行一条，格式 <code>host:port:user:pass</code> 或带 <code>{sid}</code> 的 sticky 模板。以 <code>#</code> 开头为注释。</div>
+      <label class="field" style="margin-top:12px;"><span>代理商（分组名，如 rapidproxy / kookeey）</span><input type="text" id="proxyAddProvider" placeholder="rapidproxy" /></label>
+      <label class="field" style="margin-top:8px;"><span>国家代码（代理出口，如 US / SG，留空从模板推断）</span><input type="text" id="proxyAddCountry" placeholder="US" maxlength="6" /></label>
+      <label class="field" style="margin-top:8px;"><span>标签（单条时可选）</span><input type="text" id="proxyAddLabel" placeholder="US residential" /></label>
+      <textarea id="proxyAddText" rows="8" placeholder="us.rapidproxy.io:5001:user-session-{sid}-stime-10:pass"></textarea>
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" id="proxyAddCancel">取消</button>
+      <button class="btn primary" id="proxyAddDo">添加</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="importModal">
+  <div class="modal">
+    <div class="modal-h">导入账号（4 段 / 6 段自动识别）</div>
+    <div class="modal-b">
+      <div class="hint" style="margin-top:0;">按 <code>----</code> 分段数自动识别：<br>· 4 段 Graph：<code>email----password----client_id----refresh_token</code><br>· 6 段 login.exe 恢复邮箱：<code>…----recovery_email----recovery_password</code><br>· 6 段 dual 双令牌 SSO：<code>…----login_client_id----login_refresh_token</code>（两枚 refresh，不是恢复邮箱）<br>自动按邮箱去重、校验字段。</div>
+      <div style="margin:12px 0;"><input type="file" id="importFile" accept=".txt,.csv" /></div>
+      <textarea id="importText" rows="9" placeholder="4段: a@outlook.com----pwd----cid----M.C5xx...&#10;6段: b@outlook.com----pwd----cid----M.C5yy...----login_cid----M.C5zz..."></textarea>
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" id="importCancel">取消</button>
+      <button class="btn primary" id="importDo">导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="detailModal">
+  <div class="modal modal-detail">
+    <div class="modal-h">
+      <span>账号详情</span>
+      <span id="detailTitle" class="mono" style="margin-left:8px;color:var(--brand-hover);font-size:13px;"></span>
+      <button class="btn sm ghost" style="margin-left:auto" id="detailClose">关闭</button>
+    </div>
+    <div class="modal-b" id="detailBody"></div>
+    <div class="modal-f">
+      <button class="btn sm" id="detailNote">备注</button>
+      <button class="btn sm" id="detailCopy4">复制四段 combo</button>
+      <button class="btn sm" id="detailCopy6">复制六段 combo</button>
+      <button class="btn sm" id="detailVerify">测活</button>
+      <button class="btn sm danger" id="detailDelete">删除</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="verifyModal">
+  <div class="modal modal-lg">
+    <div class="modal-h">
+      <span>批量测活</span>
+      <span id="verifyModalSub" class="hint" style="margin:0 0 0 10px;"></span>
+      <button class="btn sm ghost" style="margin-left:auto" id="verifyModalClose">关闭</button>
+    </div>
+    <div class="modal-b" style="padding-top:12px;">
+      <div class="console" id="verifyConsole" style="height:320px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="rescueModal">
+  <div class="modal modal-lg">
+    <div class="modal-h">
+      <span>批量重登</span>
+      <span id="rescueModalSub" class="hint" style="margin:0 0 0 10px;"></span>
+      <button class="btn sm ghost" style="margin-left:auto" id="rescueModalClose">关闭</button>
+    </div>
+    <div class="modal-b" style="padding-top:12px;">
+      <div class="hint" style="margin-bottom:8px;">即 <code>rescue_login</code>：用账密重新走 OAuth 拿 refresh_token。代理用<b>批次注册页</b>（含 <code>{sid}</code>）；测活仍直连。</div>
+      <div class="console" id="rescueConsole" style="height:320px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="noteModal">
+  <div class="modal">
+    <div class="modal-h">备注 / 标签</div>
+    <div class="modal-b">
+      <label class="fl">备注</label>
+      <input type="text" id="noteInput" placeholder="可选" />
+      <label class="fl" style="margin-top:12px;">标签（逗号分隔）</label>
+      <input type="text" id="noteTags" placeholder="可选" />
+    </div>
+    <div class="modal-f">
+      <button class="btn ghost" id="noteCancel">取消</button>
+      <button class="btn primary" id="noteSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let CFG = {};
+let ACCOUNTS = [];
+let SELECTED = new Set();
+let PAGE = 1; const PAGE_SIZE = 50;
+let FILTER = { view:'all', batch:'all', q:'' };
+let es = null;
+
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._tid); t._tid=setTimeout(()=>t.classList.remove('show'),2600); }
+function trunc(s,n=16){ if(!s) return ''; return s.length>n ? s.slice(0,n)+'…' : s; }
+function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _parseIso(raw){
+  if(!raw) return null;
+  const d=new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+function fmtFullTime(raw){
+  const d=_parseIso(raw);
+  if(!d) return raw ? String(raw).replace('T',' ').replace(/\.\d+/,'').slice(0,19) : '—';
+  const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function fmtShortTime(raw){
+  const d=_parseIso(raw);
+  if(!d) return raw ? String(raw).replace('T',' ').slice(5,16) : '—';
+  const p=n=>String(n).padStart(2,'0');
+  return `${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function fmtAge(sec){
+  if(sec==null || sec==='') return '—';
+  const n=Number(sec);
+  if(!Number.isFinite(n) || n<0) return '—';
+  if(n<60) return '刚刚';
+  if(n<3600) return Math.floor(n/60)+' 分钟';
+  if(n<86400) return Math.floor(n/3600)+' 小时';
+  if(n<86400*30) return Math.floor(n/86400)+' 天';
+  if(n<86400*365) return Math.floor(n/(86400*30))+' 个月';
+  return Math.floor(n/(86400*365))+' 年';
+}
+function fmtSurvivalAge(a){
+  if(a.alive_seconds==null || a.alive_seconds==='') return '未测活';
+  return fmtAge(a.alive_seconds);
+}
+function survivalTip(a){
+  if(!a.survival_end_at) return '尚未测活：存活时长 = 注册 → 首次测活确认（活/死）';
+  const ok=a.verify&&a.verify.ok;
+  const st=ok?'存活':'失效';
+  return `${fmtFullTime(a.created_at)} → ${fmtFullTime(a.survival_end_at)}（测活确认${st}）`;
+}
+function rescueTip(a){
+  const n=Number(a.rescue_count)||0;
+  if(!n) return '未执行过重登 (rescue_login)';
+  const ok=a.last_rescue_ok===true?'成功':(a.last_rescue_ok===false?'失败':'未知');
+  const reason=a.last_rescue_reason?` · ${a.last_rescue_reason}`:'';
+  return `重登 ${n} 次 · 最近 ${fmtFullTime(a.last_rescue_at)} ${ok}${reason}`;
+}
+function fmtRescueCount(a){
+  const n=Number(a.rescue_count)||0;
+  return n?`${n}次`:'—';
+}
+function copy(t){ navigator.clipboard.writeText(t).then(()=>toast('已复制')); }
+function accountByEmail(email){ return ACCOUNTS.find(x=>x.email===email); }
+function combo6(a){
+  if(a.combo_recovery) return a.combo_recovery;
+  if(a.recovery_email && a.combo){
+    const p=a.combo.split('----');
+    if(p.length>=4) return p.slice(0,4).concat([a.recovery_email,a.recovery_password||'']).join('----');
+  }
+  return '';
+}
+const COPY_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+const ICO_INFO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+const ICO_REFRESH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>';
+const ICO_TRASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>';
+function cellWithCopy(email, field, display){
+  if(!display) return `<span class="rec-none">—</span>`;
+  return `<div class="cell-main"><span class="val mono" title="${escHtml(display)}">${escHtml(trunc(display,22))}</span>
+    <button type="button" class="icon-btn" title="复制" data-act="copy-field" data-email="${escHtml(email)}" data-field="${field}">${COPY_ICON}</button></div>`;
+}
+function cellPassword(email, password){
+  if(!password) return `<span class="rec-none">—</span>`;
+  return `<div class="cell-main"><span class="val mono pwd-mask" title="密码已隐藏，点旁复制">••••••••</span>
+    <button type="button" class="icon-btn" title="复制密码" data-act="copy-field" data-email="${escHtml(email)}" data-field="password">${COPY_ICON}</button></div>`;
+}
+function copyIconBtn(val){
+  if(!val) return '<span class="rec-none">—</span>';
+  const safe=String(val).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  return `<div class="cell-main"><span class="val mono">${escHtml(trunc(val,12))}</span>
+    <button type="button" class="icon-btn" title="复制" onclick="copy('${safe}')">${COPY_ICON}</button></div>`;
+}
+function tokenStatusMain(v, hasToken){
+  if(!hasToken) return `<span class="tok-main bad">无 Token</span>`;
+  if(!v) return `<span class="tok-main unk">未测活</span>`;
+  if(v.ok || v.graph) return `<span class="tok-main ok">✓ Graph 可读信</span>`;
+  return `<span class="tok-main bad">✗ 令牌失效</span>`;
+}
+function tokenStatusDetail(v){
+  if(!v) return '<div class="detail-tok"><span class="pill na">尚未测活</span></div>';
+  const pill=(label, ok, hint)=>`<span class="pill ${ok===null?'na':ok?'on':'off'}" title="${escHtml(hint||'')}">${label}${ok===null?' · 未测':ok?' · 通':' · 不通'}</span>`;
+  return `<div class="detail-tok">
+    ${pill('Graph 读信', v.graph, 'Microsoft Graph API，导入工具用这个')}
+    ${pill('Outlook REST', v.outlook_rest, '旧版 REST API，一般可忽略')}
+    ${v.imap!=null?pill('IMAP 登录', v.imap, 'Thunderbird 协议，新号通常关'):''}
+  </div>`;
+}
+let DETAIL_EMAIL='';
+let _detailCopyStore={};
+function showAccountDetail(email){
+  const a=accountByEmail(email); if(!a) return;
+  DETAIL_EMAIL=email;
+  _detailCopyStore={};
+  $('detailTitle').textContent=a.email;
+  const c6=combo6(a);
+  const v=a.verify;
+  $('detailBody').innerHTML=`
+    <div class="detail-section">登录 / 恢复</div>
+    <div class="detail-grid">
+      ${detailRow('邮箱', a.email, 'email')}
+      ${detailRow('密码', a.password, 'pwd')}
+      ${detailRow('Client ID', a.client_id, 'cid')}
+      ${detailRow('恢复邮箱', a.recovery_email||'—', a.recovery_email?'rec_em':null)}
+      ${detailRow('Refresh', a.refresh_token||'—', a.refresh_token?'rt':null, true)}
+      ${detailRow('恢复密码', a.recovery_password||'—', a.recovery_password?'rec_pw':null)}
+    </div>
+    <div class="detail-section">读信 · ${v&&v.ok?'Graph 可用':(v?'令牌失效':'尚未测活')}</div>
+    ${tokenStatusDetail(v)}
+    <div class="detail-section">Combo</div>
+    <div class="detail-grid">
+      ${detailRow('四段', a.combo||'—', a.combo?'c4':null, true)}
+      ${detailRow('六段', c6||'—', c6?'c6':null, true)}
+    </div>
+    <div class="detail-section">其它</div>
+    <div class="detail-grid">
+      ${detailRow('来源', a.source||'—', null)}
+      ${detailRow('批次', a.batch_label || (a.batch_no ? ('B'+a.batch_no) : '—'), null)}
+      ${detailRow('注册时间', fmtFullTime(a.created_at), null)}
+      ${detailRow('存活时间', fmtSurvivalAge(a), null)}
+      ${detailRow('存活区间', survivalTip(a), null)}
+      ${detailRow('重登次数', fmtRescueCount(a), null)}
+      ${detailRow('最近重登', rescueTip(a), null)}
+      ${detailRow('更新时间', fmtFullTime(a.updated_at), null)}
+      ${detailRow('最近存活', fmtFullTime(a.last_alive_at), null)}
+    </div>`;
+  $('detailModal').classList.add('show');
+}
+function detailRow(label, value, copyKey, wide){
+  const show=value||'—';
+  if(copyKey && value && value!=='—') _detailCopyStore[copyKey]=value;
+  const copyBtn=copyKey
+    ? `<button type="button" class="icon-btn" title="复制" data-act="copy-store" data-copy-key="${copyKey}">${COPY_ICON}</button>` : '';
+  return `<div class="drow${wide?' span-2':''}"><div class="dlabel">${label}</div><div class="dval" title="${escHtml(show)}">${escHtml(show)}</div>${copyBtn}</div>`;
+}
+async function api(path, opts){ const r=await fetch(path, opts); return r; }
+async function jpost(path, body){
+  const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  const text=await r.text();
+  try { return JSON.parse(text); }
+  catch(e){ return {ok:false, summary:`接口 ${r.status}：${(text||'').slice(0,80)}`}; }
+}
+
+const TITLES = {
+  overview:['概览','账号与批次总览'],
+  register:['批次注册','左配置 · 右进度'],
+  proxies:['代理池','增删改查 · 预检 · 账号绑定'],
+  'proxy-stats':['代理统计','成功率趋势 · 代理商维度'],
+  pool:['账号池','管理 / 导入导出 / 测活 / 删除'],
+  verify:['测活','四段式可用性校验'],
+  ops:['IMAP / 保活','可选能力（占位）']
+};
+const PROXY_SEL = new Set();
+let PROXY_ROWS = [];
+let PROXY_STATS_TS = null;
+const PROXY_CHART_HIDDEN = new Set();
+const CHART_PALETTE = ['#059669','#2563eb','#d97706','#dc2626','#7c3aed','#0891b2','#be185d','#65a30d','#ea580c','#4f46e5'];
+let PROXY_CHART_LAYOUT = null;
+document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const sec=b.dataset.sec;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  $('sec-'+sec).classList.add('active');
+  $('pageTitle').textContent=TITLES[sec][0]; $('pageSub').textContent=TITLES[sec][1];
+  if(sec==='overview'){ loadAccounts(); loadJobs(); }
+  if(sec==='pool') loadAccounts();
+  if(sec==='proxies') loadProxyPool();
+  if(sec==='proxy-stats') loadProxyStats();
+});
+
+const DEFAULT_PROXY = '';
+const DEFAULT_CAPTCHA_KEY = '';
+
+async function syncProxyToDb(text, provider='web'){
+  const t=(text||'').trim();
+  if(!t) return null;
+  try {
+    return await jpost('/api/proxy-pool/ensure', {text:t, provider});
+  } catch(e){ return null; }
+}
+
+async function loadConfig(){
+  try {
+    const c = await (await api('/api/config')).json(); CFG=c;
+    $('pxMode').innerHTML = c.px_modes.map(m=>`<option>${m}</option>`).join('');
+    const products = c.product_modes || [
+      {id:'graph', label:'Graph 四段式', export:'graph', hint:''},
+      {id:'graph_recovery', label:'Graph 六段式（推荐）', export:'recovery', hint:''}
+    ];
+    const defMode = c.default_token_mode || 'graph';
+    $('tokenMode').innerHTML = products.map(m=>{
+      const id = m.id || m;
+      const label = m.label || id;
+      return `<option value="${id}"${id===defMode?' selected':''}>${label}</option>`;
+    }).join('');
+    window._productModes = products;
+    $('tokenMode').onchange = function(){};
+    $('domain').innerHTML = c.domains.map(d=>`<option>${d}</option>`).join('');
+    $('country').value = c.default_country||'US';
+    $('proxy').placeholder = 'host:port:user:pass-US-{sid}';
+    $('captchaKey').placeholder = 'captcha.run Bearer key';
+    const savedProxy = localStorage.getItem('outlook_reg_proxy');
+    const savedKey = localStorage.getItem('outlook_reg_captcha_key');
+    $('proxy').value = savedProxy || DEFAULT_PROXY;
+    if(savedProxy) await syncProxyToDb(savedProxy);
+    $('captchaKey').value = savedKey || DEFAULT_CAPTCHA_KEY;
+    $('count').value = '1';
+    $('concurrency').value = '1';
+    $('cfgHint').textContent = '已预填 Key；注册默认走代理池，备用代理可留空（池内无条目时必填）';
+    const fmtLabel={graph:'4 段式(Graph 读信)',dual:'6 段式(双令牌 SSO，两枚 refresh)',recovery:'6 段式(含恢复邮箱)'};
+    $('exportFmt').innerHTML = (c.export_formats||['graph']).map(f=>`<option value="${f}">${fmtLabel[f]||f}</option>`).join('');
+    $('exportFmt').value='graph';
+    $('footEngine').textContent = `批量:${c.batch_ready?'引擎':'线程池'} · dual:${c.dual_ready?'就绪':'未就绪'} · 代理池:${(c.proxy_pool&&c.proxy_pool.enabled)||0}`;
+    const savedUsePool = localStorage.getItem('outlook_use_proxy_pool');
+    if($('useProxyPool')) $('useProxyPool').checked = savedUsePool==='0' ? false : true;
+  } catch(e){ $('cfgHint').textContent='配置加载失败: '+e; }
+}
+async function health(){
+  try { const j=await (await api('/api/health')).json();
+    $('footDot').className='dot '+(j.ok?'on':'off'); $('footHealth').textContent=j.ok?'服务在线':'异常';
+  } catch { $('footDot').className='dot off'; $('footHealth').textContent='离线'; }
+}
+
+function renderStats(s){
+  const items=[['总数',s.total,'var(--fg)'],['有Token',s.with_token,'var(--info)'],['可用',s.usable,'var(--success)'],['失活',s.dead,'var(--danger)'],['未测',s.untested,'var(--fg-3)'],['今日新增',s.today_new,'var(--brand)']];
+  $('statCards').innerHTML = items.map(([l,v,c])=>`<div class="card stat"><div class="lbl">${l}</div><div class="num" style="color:${c}">${v}</div></div>`).join('');
+}
+async function loadJobs(){
+  try {
+    const j=await (await api('/api/jobs')).json();
+    if(!j.jobs.length){ $('jobsBody').innerHTML='<tr><td colspan="7" class="empty">暂无批次</td></tr>'; return; }
+    $('jobsBody').innerHTML=j.jobs.map(x=>{
+      const stcls=x.status==='done'?'ok':(x.status==='error'?'err':'run');
+      const label=x.batch_label || (x.batch_no ? ('B'+x.batch_no) : x.id);
+      return `<tr data-batch="${escHtml(label)}" style="cursor:pointer" title="查看该批次账号 · ${escHtml(x.id||'')}">
+        <td class="mono">${escHtml(label)}</td><td>${(x.created_at||'').replace('T',' ').slice(0,19)}</td>
+        <td>${x.count}</td><td>${x.concurrency}</td><td>${x.dry_run?'干跑·':''}${x.token_mode||''}</td>
+        <td><span class="st ${stcls}">${x.status}</span></td>
+        <td><span style="color:var(--success)">${x.ok_count||0}</span> / <span style="color:var(--danger)">${x.fail_count||0}</span></td></tr>`;
+    }).join('');
+  } catch(e){}
+}
+
+const jobAccts = {};
+const stMap={'等待中':'wait','进行中':'run','成功':'ok','成功(干跑)':'ok','失败':'err'};
+const seenLogKeys = new Set();
+function renderProgress(){
+  const rows=Object.values(jobAccts).sort((a,b)=>a.index-b.index);
+  if(!rows.length){ $('progressBody').innerHTML='<tr><td colspan="6" class="empty">开始注册后，各账号状态会显示在这里</td></tr>'; return; }
+  let ok=0,err=0,run=0;
+  $('progressBody').innerHTML=rows.map(a=>{
+    if((a.status||'').startsWith('成功'))ok++;
+    else if(a.status==='失败')err++;
+    else if(a.status==='进行中')run++;
+    return `<tr><td>${a.index}</td><td><span class="st ${stMap[a.status]||'wait'}">${a.status}</span></td>
+      <td class="mono">${a.email||'—'}</td>
+      <td>${a.password?copyIconBtn(a.password):'<span class="rec-none">—</span>'}</td>
+      <td>${a.refresh_token?copyIconBtn(a.refresh_token):'<span class="rec-none">—</span>'}</td>
+      <td style="color:var(--danger);font-size:11px;">${escHtml(a.error||'')}</td></tr>`;
+  }).join('');
+  $('nTotal').textContent=rows.length; $('nOk').textContent=ok; $('nErr').textContent=err;
+  if($('nRun')) $('nRun').textContent=run;
+}
+function logLine(ev){
+  const key=(ev.ts||'')+'|'+(ev.level||'INFO')+'|'+(ev.msg||'');
+  if(seenLogKeys.has(key)) return;
+  seenLogKeys.add(key);
+  const empty=$('logEmpty'); if(empty) empty.remove();
+  const c=$('console'); const d=document.createElement('div'); d.className='l-'+(ev.level||'INFO');
+  d.innerHTML=`<span class="ts">${ev.ts||''}</span>${(ev.msg||'').replace(/</g,'&lt;')}`; c.appendChild(d); c.scrollTop=c.scrollHeight;
+  if($('logCopyBtn')) $('logCopyBtn').style.display='inline-block';
+}
+function clearLogConsole(){
+  const c=$('console'); c.innerHTML='<p class="register-log-empty" id="logEmpty">配置完成后点击「开始批次注册」，代理预检、PX、注册各阶段会实时显示在这里</p>';
+  if($('logCopyBtn')) $('logCopyBtn').style.display='none';
+}
+async function copyRegisterLogs(){
+  const c=$('console'); if(!c) return;
+  const text=[...c.querySelectorAll('div')].map(el=>el.innerText).join('\n').trim();
+  if(!text){ toast('暂无日志'); return; }
+  try{ await navigator.clipboard.writeText(text); toast('已复制日志'); }
+  catch(e){ toast('复制失败'); }
+}
+function renderSummary(s){
+  if(!s){ $('batchSummary').className='msgbox'; $('batchSummary').innerHTML=''; return; }
+  const st=s.avg_stage_timings||{};
+  const stages=Object.entries(st).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="badge neutral">${k} ${v}s</span>`).join(' ')||'—';
+  $('batchSummary').className='msgbox show ok';
+  $('batchSummary').innerHTML=`<b>本批小结</b>　成功 ${s.ok}/${s.total}（失败 ${s.failed}）　本批耗时 <b>${s.elapsed}s</b>　单号均耗 <b>${s.avg_per_account}s</b><br><span style="color:var(--fg-3)">阶段平均：</span>${stages}`;
+}
+
+async function startRegister(){
+  const usePool = $('useProxyPool') && $('useProxyPool').checked;
+  const proxy = $('proxy').value.trim();
+  const captchaKey = $('captchaKey').value.trim();
+  if (!usePool && !proxy) { toast('请填写备用代理或启用代理池'); return; }
+  if (!captchaKey) { toast('请填写 captcha.run Key'); return; }
+  localStorage.setItem('outlook_reg_proxy', proxy);
+  localStorage.setItem('outlook_use_proxy_pool', usePool ? '1' : '0');
+  localStorage.setItem('outlook_reg_captcha_key', captchaKey);
+  if(proxy) await syncProxyToDb(proxy);
+  const batchLabel=$('batchLabel').value.trim();
+  const body={ count:+$('count').value||1, concurrency:+$('concurrency').value||1,
+    prefix:$('prefix').value.trim()||null, domain:$('domain').value, country:$('country').value.trim()||'US',
+    proxy, use_proxy_pool: usePool, px_mode:$('pxMode').value, skip_login:$('skipLogin').checked,
+    no_mail_token:false, captcha_key:captchaKey,
+    token_mode:$('tokenMode').value, dry_run:false };
+  if(batchLabel) body.batch_label=batchLabel;
+  $('startBtn').disabled=true; clearLogConsole(); seenLogKeys.clear(); renderSummary(null); for(const k in jobAccts) delete jobAccts[k]; renderProgress();
+  if($('logLive')) $('logLive').style.display='inline';
+  try {
+    const r=await api('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok){ const e=await r.json(); throw new Error(e.detail||r.status); }
+    const j=await r.json();
+    $('jobBadge').innerHTML=`<span class="badge brand">${j.batch_label||''}</span> <span class="badge neutral">${j.dry_run?'干跑':'真实'} · ${j.count}个 · 并发${j.concurrency}</span>`;
+    toast('批次已启动'); connectSSE(j.job_id);
+  } catch(e){ logLine({level:'ERROR',msg:'启动失败: '+e.message}); $('startBtn').disabled=false; if($('logLive')) $('logLive').style.display='none'; }
+}
+function connectSSE(id){
+  if(es) es.close();
+  es=new EventSource('/api/jobs/'+id+'/events');
+  es.onmessage=(m)=>{ const ev=JSON.parse(m.data);
+    if(ev.type==='snapshot'){ (ev.snapshot.accounts||[]).forEach(a=>jobAccts[a.index]=a); (ev.snapshot.logs||[]).forEach(logLine); renderSummary(ev.snapshot.batch_summary); renderProgress(); }
+    else if(ev.type==='log') logLine(ev);
+    else if(ev.type==='account'){ jobAccts[ev.account.index]=ev.account; renderProgress(); }
+    else if(ev.type==='summary'){ renderSummary(ev.summary); }
+    else if(ev.type==='done'){ es.close(); es=null; $('startBtn').disabled=false; if($('logLive')) $('logLive').style.display='none'; toast('批次完成'); loadAccounts(); loadJobs(); }
+  };
+  es.onerror=()=>logLine({level:'WARNING',msg:'SSE 连接中断（任务可能已结束）'});
+}
+
+function renderPool(){
+  const rows=filteredAccounts();
+  const pages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+  if(PAGE>pages) PAGE=pages;
+  const slice=rows.slice((PAGE-1)*PAGE_SIZE, PAGE*PAGE_SIZE);
+  $('navPoolCount').textContent=ACCOUNTS.length;
+  if(!slice.length){ $('poolBody').innerHTML='<tr><td colspan="12" class="empty">无匹配账号</td></tr>'; }
+  else $('poolBody').innerHTML=slice.map(a=>{
+    const em=escHtml(a.email);
+    const rec=a.recovery_email
+      ? cellWithCopy(a.email,'recovery_email',a.recovery_email)
+      : '<span class="rec-none">未绑定</span>';
+    const tags=(a.tags||[]).map(t=>`<span class="tag">${escHtml(t)}</span>`).join('');
+    const note=a.note?`<span style="color:var(--fg-2)">${escHtml(a.note)}</span> `:'';
+    const batch=a.batch_label || (a.batch_no ? ('B'+a.batch_no) : '');
+    return `<tr>
+      <td><input type="checkbox" class="ck rowck" data-email="${em}" ${SELECTED.has(a.email)?'checked':''}/></td>
+      <td>${cellWithCopy(a.email,'email',a.email)}</td>
+      <td>${cellPassword(a.email,a.password)}</td>
+      <td>${rec}</td>
+      <td>${tokenStatusMain(a.verify, a.has_token)}</td>
+      <td>${batch?`<span class="cell-batch" title="批次 ${escHtml(batch)}${a.batch_id?(' · '+escHtml(a.batch_id)):''}">${escHtml(batch)}</span>`:'<span class="rec-none">—</span>'}</td>
+      <td class="cell-time" title="${escHtml(fmtFullTime(a.created_at))}">${escHtml(fmtShortTime(a.created_at))}</td>
+      <td class="cell-age" title="${escHtml(survivalTip(a))}">${escHtml(fmtSurvivalAge(a))}</td>
+      <td class="cell-relogin mono" title="${escHtml(rescueTip(a))}">${escHtml(fmtRescueCount(a))}</td>
+      <td class="cell-time" title="${escHtml(fmtFullTime(a.updated_at))}">${escHtml(fmtShortTime(a.updated_at))}</td>
+      <td style="font-size:11.5px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(a.note||'')}">${note}${tags||'<span class="rec-none">—</span>'}</td>
+      <td><div class="act-row">
+        <button type="button" class="icon-btn is-info" title="详情" data-act="detail" data-email="${em}">${ICO_INFO}</button>
+        <button type="button" class="icon-btn is-query" title="测活" data-act="verify" data-email="${em}">${ICO_REFRESH}</button>
+      </div></td></tr>`;
+  }).join('');
+  document.querySelectorAll('.rowck').forEach(c=>c.onchange=()=>{ c.checked?SELECTED.add(c.dataset.email):SELECTED.delete(c.dataset.email); updateSel(); });
+  $('pageInfo').textContent=`第 ${PAGE}/${pages} 页 · 共 ${rows.length} 条`;
+  updateSel();
+}
+$('poolBody').addEventListener('click',(e)=>{
+  const btn=e.target.closest('[data-act]'); if(!btn) return;
+  const email=btn.dataset.email;
+  const a=accountByEmail(email);
+  if(btn.dataset.act==='copy-field' && a){
+    copy(a[btn.dataset.field]||''); return;
+  }
+  if(btn.dataset.act==='copy-store'){ copy(_detailCopyStore[btn.dataset.copyKey]||''); return; }
+  if(btn.dataset.act==='detail'){ showAccountDetail(email); return; }
+  if(btn.dataset.act==='verify'){ verifyRow(email); return; }
+  if(btn.dataset.act==='delete'){ delRow(email); return; }
+});
+$('detailClose').onclick=()=>$('detailModal').classList.remove('show');
+$('detailModal').onclick=(e)=>{ if(e.target===$('detailModal')) $('detailModal').classList.remove('show'); };
+$('detailBody').addEventListener('click',(e)=>{
+  const btn=e.target.closest('[data-act="copy-store"]');
+  if(btn) copy(_detailCopyStore[btn.dataset.copyKey]||'');
+});
+$('detailCopy4').onclick=()=>{ const a=accountByEmail(DETAIL_EMAIL); if(a&&a.combo) copy(a.combo); };
+$('detailNote').onclick=()=>{ if(DETAIL_EMAIL) editNote(DETAIL_EMAIL); };
+$('detailCopy6').onclick=()=>{ const a=accountByEmail(DETAIL_EMAIL); const c=combo6(a||{}); if(c) copy(c); else toast('无六段 combo'); };
+$('detailVerify').onclick=()=>{ if(DETAIL_EMAIL){ verifyRow(DETAIL_EMAIL).then(()=>showAccountDetail(DETAIL_EMAIL)); } };
+$('detailDelete').onclick=()=>{ if(DETAIL_EMAIL){ delRow(DETAIL_EMAIL); $('detailModal').classList.remove('show'); } };
+function isGraphReadable(a){
+  const v=a&&a.verify;
+  return !!(v && (v.ok || v.graph));
+}
+function accountBatchLabel(a){
+  return (a && (a.batch_label || (a.batch_no ? ('B'+a.batch_no) : ''))) || '';
+}
+function renderBatchFilter(){
+  const sel=$('filterBatch'); if(!sel) return;
+  const cur=FILTER.batch||'all';
+  const counts=new Map();
+  ACCOUNTS.forEach(a=>{ const l=accountBatchLabel(a); if(l) counts.set(l,(counts.get(l)||0)+1); });
+  const extras=[...counts.entries()].sort((x,y)=>String(y[0]).localeCompare(String(x[0]),'zh'));
+  const opts=[['all','全部批次'],['none','无批次'],...extras.map(([l,n])=>[l, `${l}（${n}）`])];
+  sel.innerHTML=opts.map(([v,t])=>`<option value="${escHtml(v)}">${escHtml(t)}</option>`).join('');
+  sel.value=opts.some(o=>o[0]===cur)?cur:'all';
+  FILTER.batch=sel.value;
+}
+function filteredAccounts(){
+  return ACCOUNTS.filter(a=>{
+    const v=a.verify;
+    const view=FILTER.view;
+    if(view==='without' && a.has_token) return false;
+    if(view==='dual' && !a.login_token) return false;
+    if(view==='untested' && v) return false;
+    if(view==='usable' && !isGraphReadable(a)) return false;
+    if(view==='dead' && !(v&&!v.ok&&!v.graph)) return false;
+    const batch=accountBatchLabel(a);
+    if(FILTER.batch==='none' && batch) return false;
+    if(FILTER.batch && FILTER.batch!=='all' && FILTER.batch!=='none' && batch!==FILTER.batch) return false;
+    if(FILTER.q){ const q=FILTER.q.toLowerCase();
+      const hay=(a.email+' '+(a.recovery_email||'')+' '+(a.note||'')+' '+(a.tags||[]).join(' ')+' '+batch).toLowerCase();
+      if(!hay.includes(q)) return false; }
+    return true;
+  }).sort((a,b)=>{
+    const ga=isGraphReadable(a)?1:0, gb=isGraphReadable(b)?1:0;
+    if(ga!==gb) return gb-ga;
+    return String(b.created_at||'').localeCompare(String(a.created_at||''));
+  });
+}
+function updateSel(){ $('selCount').innerHTML='已选 <b>'+SELECTED.size+'</b>';
+  const vis=filteredAccounts().slice((PAGE-1)*PAGE_SIZE,PAGE*PAGE_SIZE);
+  const all=vis.length&&vis.every(a=>SELECTED.has(a.email)); $('ckAll').checked=all; }
+async function loadAccounts(){
+  try {
+    const j=await (await api('/api/accounts')).json();
+    ACCOUNTS=j.accounts; renderStats(j.stats); renderBatchFilter(); renderPool();
+  } catch(e){ $('poolBody').innerHTML='<tr><td colspan="12" class="empty">加载失败: '+e+'</td></tr>'; }
+}
+
+function selectedEmails(){ return [...SELECTED]; }
+function rescueLog(level, msg){
+  const c=$('rescueConsole'); if(!c) return;
+  const d=document.createElement('div'); d.className='l-'+(level||'INFO');
+  d.innerHTML=`<span class="ts">${new Date().toTimeString().slice(0,8)}</span>${escHtml(msg||'')}`;
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+async function runBatchRescue(emails){
+  const picked=(emails&&emails.length)?ACCOUNTS.filter(a=>emails.includes(a.email)):ACCOUNTS.slice();
+  const list=picked.filter(a=>(a.password||'').trim());
+  const noPwd=picked.length-list.length;
+  $('rescueConsole').innerHTML='';
+  $('rescueModalSub').textContent=`共 ${list.length} 个`;
+  $('rescueModal').classList.add('show');
+  $('btnRescueSel').disabled=true;
+  if(!list.length){
+    rescueLog('WARNING','没有可重登账号（需有密码）');
+    $('btnRescueSel').disabled=false;
+    return;
+  }
+  const proxy=($('proxy')&&$('proxy').value.trim())||'';
+  const usePool=$('useProxyPool')&&$('useProxyPool').checked;
+  if(!usePool&&!proxy) rescueLog('WARNING','未启用代理池且未填备用代理，将使用 rescue_login 默认模板');
+  if(noPwd) rescueLog('WARNING', `${noPwd} 个缺密码，已跳过`);
+  rescueLog('INFO', `开始重登 ${list.length} 个（${usePool?'代理池':'单代理'}，并发 1）`);
+  try {
+    const j=await jpost('/api/rescue',{emails:list.map(a=>a.email), proxy, use_proxy_pool:usePool, concurrency:1});
+    if(!j.implemented){
+      rescueLog('ERROR', j.message||'重登不可用');
+      toast(j.message||'重登不可用');
+      return;
+    }
+    (j.results||[]).forEach((r,i)=>{
+      const tag=`[${i+1}/${(j.results||[]).length}] ${r.email}`;
+      if(r.ok) rescueLog('INFO', `${tag} 成功${r.rescue_count!=null?' · 累计 '+r.rescue_count+' 次':''}${r.verify_summary?' · '+r.verify_summary:''}`);
+      else rescueLog('ERROR', `${tag} 失败：${r.reason||r.message||'未知'}`);
+    });
+    rescueLog('INFO', `结束：成功 ${j.ok_count||0} / ${j.total||0}`);
+    $('rescueModalSub').textContent=`成功 ${j.ok_count||0} / ${j.total||0}`;
+    toast(`重登完成：${j.ok_count||0}/${j.total||0}`);
+    await loadAccounts();
+  } catch(e){
+    rescueLog('ERROR', String(e.message||e));
+    toast('重登失败');
+  } finally {
+    $('btnRescueSel').disabled=false;
+  }
+}
+function verifyLog(level, msg){
+  const c=$('verifyConsole'); if(!c) return;
+  const d=document.createElement('div'); d.className='l-'+(level||'INFO');
+  d.innerHTML=`<span class="ts">${new Date().toTimeString().slice(0,8)}</span>${escHtml(msg||'')}`;
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+}
+async function verifyOneAccount(a){
+  if(!a) return {ok:false,summary:'账号不存在'};
+  const rt=a.refresh_token||'';
+  if(!rt){
+    return {ok:false,email:a.email,summary:'无 refresh_token，无法测活',unable:true};
+  }
+  // 测活默认直连：refresh 换票不需要注册代理；注册页 #proxy 多为住宅 IP，易导致 login.microsoftonline.com SSL 断连
+  const proxy=($('verProxy')&&$('verProxy').value.trim())||'';
+  return jpost('/api/verify-combo',{
+    email:a.email, refresh_token:rt, combo:a.combo||'', test_imap:false, proxy
+  });
+}
+async function verifyRow(email){
+  const a=accountByEmail(email); if(!a) return;
+  const j=await verifyOneAccount(a);
+  toast(j.transient?(j.summary||'网络异常，保留原状态'):(j.summary||(j.ok?'Graph 可用':'不可用')));
+  await loadAccounts();
+  return j;
+}
+async function runBatchVerify(emails){
+  const picked=(emails&&emails.length)
+    ? ACCOUNTS.filter(a=>emails.includes(a.email))
+    : ACCOUNTS.slice();
+  const list=picked.filter(a=>a.refresh_token).sort((a,b)=>{
+    const ga=isGraphReadable(a)?1:0, gb=isGraphReadable(b)?1:0;
+    if(ga!==gb) return gb-ga;
+    return 0;
+  });
+  const noToken=picked.length-list.length;
+  $('verifyConsole').innerHTML='';
+  $('verifyModalSub').textContent=`共 ${list.length} 个`;
+  $('verifyModal').classList.add('show');
+  $('btnVerifySel').disabled=true;
+  let ok=0, fail=0, died=0, skipped=0, i=0;
+  verifyLog('INFO', `开始测活 ${list.length} 个（OAuth 换票默认直连，不走注册页代理）`);
+  if(noToken) verifyLog('WARNING', `${noToken} 个没有 refresh_token，测不了，未列入`);
+  const queue=list.slice();
+  const workers=Array.from({length:Math.min(3,queue.length||1)}, async()=>{
+    while(queue.length){
+      const a=queue.shift();
+      const n=++i;
+      const wasOk=isGraphReadable(a);
+      verifyLog('INFO', `[${n}/${list.length}] ${a.email}${wasOk?'（复查）':''} …`);
+      try {
+        const j=await verifyOneAccount(a);
+        if(j.transient){
+          skipped++;
+          verifyLog('WARNING', `[${n}] ${a.email} ${j.summary||'网络异常，保留原状态'}`);
+        }
+        else if(j.unable){ fail++; verifyLog('WARNING', `[${n}] ${a.email} ${j.summary}`); }
+        else if(j.ok){ ok++; verifyLog('INFO', `[${n}] ${a.email} Graph 可读信`); }
+        else {
+          fail++;
+          if(wasOk) died++;
+          verifyLog('ERROR', `[${n}] ${a.email}${wasOk?' 已失活':' '} ${j.summary||j.message||'不可用'}`);
+        }
+      } catch(e){
+        fail++; verifyLog('ERROR', `[${n}] ${a.email} ${e.message||e}`);
+      }
+    }
+  });
+  await Promise.all(workers);
+  const extra=died?` · 原可读信现已死 ${died}`:'';
+  const skipTxt=skipped?` · 网络跳过 ${skipped}`:'';
+  verifyLog('INFO', `结束：可用 ${ok} · 失败 ${fail}${extra}${skipTxt}`);
+  $('verifyModalSub').textContent=`可用 ${ok} / ${list.length}${skipped?` · 跳过 ${skipped}`:''}`;
+  $('btnVerifySel').disabled=false;
+  await loadAccounts();
+  toast(`测活完成：可用 ${ok}，失败 ${fail}${died?'，新死 '+died:''}${skipped?'，网络跳过 '+skipped:''}`);
+}
+async function delRow(email){
+  const j=await jpost('/api/accounts/delete',{emails:[email]});
+  toast('已删除 '+j.removed);
+  SELECTED.delete(email);
+  loadAccounts();
+}
+let NOTE_EMAIL='';
+async function editNote(email){
+  const a=accountByEmail(email)||{};
+  NOTE_EMAIL=email;
+  $('noteInput').value=a.note||'';
+  $('noteTags').value=(a.tags||[]).join(',');
+  $('noteModal').classList.add('show');
+}
+
+$('ckAll').onchange=(e)=>{ const vis=filteredAccounts().slice((PAGE-1)*PAGE_SIZE,PAGE*PAGE_SIZE);
+  vis.forEach(a=>{ e.target.checked?SELECTED.add(a.email):SELECTED.delete(a.email); }); renderPool(); };
+$('poolSearch').oninput=(e)=>{ FILTER.q=e.target.value; PAGE=1; renderPool(); };
+$('filterView').onchange=(e)=>{ FILTER.view=e.target.value; PAGE=1; renderPool(); };
+$('filterBatch').onchange=(e)=>{ FILTER.batch=e.target.value; PAGE=1; renderPool(); };
+$('jobsBody').addEventListener('click',(e)=>{
+  const tr=e.target.closest('tr[data-batch]'); if(!tr) return;
+  FILTER.batch=tr.dataset.batch||'all'; PAGE=1;
+  const nav=document.querySelector('.nav[data-sec="pool"]');
+  if(nav) nav.click();
+  renderBatchFilter(); renderPool();
+});
+$('prevPage').onclick=()=>{ if(PAGE>1){PAGE--; renderPool();} };
+$('nextPage').onclick=()=>{ PAGE++; renderPool(); };
+
+$('btnExport').onclick=async()=>{ await downloadExport(SELECTED.size?selectedEmails():null); };
+async function downloadExport(emails){
+  const fmt=$('exportFmt').value;
+  const r=await fetch('/api/accounts/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emails,format:fmt})});
+  const blob=await r.blob(); const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='accounts_'+fmt+'.txt'; a.click(); URL.revokeObjectURL(url);
+  const six=+(r.headers.get('X-Export-Six')||0), total=+(r.headers.get('X-Export-Total')||0);
+  const degraded=r.headers.get('X-Export-Degraded')==='1';
+  if(fmt==='dual'){
+    if(total===0) toast('无可导出账号');
+    else if(degraded) toast('所有账号均无双令牌，已按 4 段导出（共 '+total+' 行）');
+    else if(six<total) toast('部分账号无双令牌，已按 4 段导出（'+six+'/'+total+' 行为 6 段）');
+    else toast('已导出 6 段双令牌 SSO（共 '+total+' 行）');
+  } else if(fmt==='recovery'){
+    if(total===0) toast('无可导出账号');
+    else if(degraded) toast('所有账号均无恢复邮箱，已按 4 段导出（共 '+total+' 行）');
+    else if(six<total) toast('部分账号无恢复邮箱，已按 4 段导出（'+six+'/'+total+' 行为六段）');
+    else toast('已导出六段式（含恢复邮箱，共 '+total+' 行）');
+  } else {
+    toast(total?('已导出 Graph 四段式（共 '+total+' 行）'):'无可导出账号');
+  }
+}
+$('btnCopySel').onclick=()=>{ if(!SELECTED.size){toast('未选中账号');return;}
+  const lines=ACCOUNTS.filter(a=>SELECTED.has(a.email)).map(a=>a.combo).filter(Boolean);
+  copy(lines.join('\n')); };
+$('btnVerifySel').onclick=()=>{ runBatchVerify(SELECTED.size?selectedEmails():null); };
+$('btnRescueSel').onclick=()=>{ runBatchRescue(SELECTED.size?selectedEmails():null); };
+$('verifyModalClose').onclick=()=>$('verifyModal').classList.remove('show');
+$('rescueModalClose').onclick=()=>$('rescueModal').classList.remove('show');
+$('rescueModal').onclick=(e)=>{ if(e.target===$('rescueModal')) $('rescueModal').classList.remove('show'); };
+$('verifyModal').onclick=(e)=>{ if(e.target===$('verifyModal')) $('verifyModal').classList.remove('show'); };
+$('noteCancel').onclick=()=>$('noteModal').classList.remove('show');
+$('noteModal').onclick=(e)=>{ if(e.target===$('noteModal')) $('noteModal').classList.remove('show'); };
+$('noteSave').onclick=async()=>{
+  if(!NOTE_EMAIL) return;
+  const note=$('noteInput').value.trim();
+  const tags=$('noteTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  await jpost('/api/accounts/meta',{email:NOTE_EMAIL,note,tags});
+  $('noteModal').classList.remove('show');
+  toast('备注已保存');
+  await loadAccounts();
+  if(DETAIL_EMAIL===NOTE_EMAIL) showAccountDetail(NOTE_EMAIL);
+};
+$('btnDeleteSel').onclick=async()=>{ if(!SELECTED.size){toast('未选中账号');return;}
+  const j=await jpost('/api/accounts/delete',{emails:selectedEmails()}); toast('已删除 '+j.removed); SELECTED.clear(); loadAccounts(); };
+
+$('btnImport').onclick=()=>$('importModal').classList.add('show');
+$('importCancel').onclick=()=>$('importModal').classList.remove('show');
+$('importFile').onchange=(e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ $('importText').value=r.result; }; r.readAsText(f); };
+$('importDo').onclick=async()=>{ const text=$('importText').value; if(!text.trim()){toast('无内容');return;}
+  const j=await jpost('/api/accounts/import',{text});
+  toast(`导入 ${j.imported}（其中 6 段 ${j.six_seg||0}），重复 ${j.duplicate}，无效 ${j.invalid}`);
+  $('importModal').classList.remove('show'); $('importText').value=''; $('importFile').value=''; loadAccounts(); };
+
+function setStBadge(el,label,state,status){ const cls=state===true?'ok':(state===false?'err':'wait');
+  const suf=(status===undefined||status===null)?(state===true?'✓':(state===false?'✗':'—')):status;
+  el.className='st '+cls; el.textContent=`${label}: ${suf}`; }
+async function verifyCombo(){
+  const body={ combo:$('verCombo').value.trim()||null, email:$('verEmail').value.trim()||null,
+    refresh_token:$('verToken').value.trim()||null, proxy:$('verProxy').value.trim()||null, test_imap:$('verImap').checked };
+  $('verifyBtn').disabled=true; $('verResult').style.display='block';
+  $('vSummary').className='msgbox show warn'; $('vSummary').textContent='校验中…'; $('vScope').textContent='';
+  setStBadge($('vGraph'),'Graph 读信',null); setStBadge($('vRest'),'Outlook REST',null); setStBadge($('vImap'),'IMAP',null);
+  try {
+    const j=await jpost('/api/verify-combo',body);
+    setStBadge($('vGraph'),'Graph 读信',j.graph?j.graph.ok:null,j.graph?j.graph.status:null);
+    setStBadge($('vRest'),'Outlook REST',j.outlook_rest?j.outlook_rest.ok:null,j.outlook_rest?j.outlook_rest.status:null);
+    if(j.imap&&j.imap.tested) setStBadge($('vImap'),'IMAP',j.imap.ok,j.imap.ok?'OK':(j.imap.stage||'✗')); else setStBadge($('vImap'),'IMAP',null,'未测');
+    $('vSummary').className='msgbox show '+(j.ok?'ok':'err'); $('vSummary').textContent=j.summary||j.message||(j.ok?'可用':'不可用');
+    let scope=j.granted_scope?('授予 scope: '+j.granted_scope):'';
+    if(j.refresh_error) scope+=(scope?' | ':'')+'refresh 错误: '+j.refresh_error;
+    if(j.imap&&j.imap.tested&&j.imap.detail) scope+=(scope?' | ':'')+'imap: '+j.imap.detail;
+    $('vScope').textContent=scope; loadAccounts();
+  } catch(e){ $('vSummary').className='msgbox show err'; $('vSummary').textContent='校验失败: '+e; }
+  finally { $('verifyBtn').disabled=false; }
+}
+
+function opsMsg(kind,text){ const m=$('opsMsg'); m.className='msgbox show '+kind; m.textContent=text; }
+
+$('startBtn').onclick=startRegister;
+if($('logCopyBtn')) $('logCopyBtn').onclick=()=>void copyRegisterLogs();
+$('verifyBtn').onclick=verifyCombo;
+$('globalRefresh').onclick=()=>{ loadConfig(); loadAccounts(); loadJobs(); health(); toast('已刷新'); };
+$('imapEnableBtn').onclick=async()=>{ const j=await jpost('/api/imap-enable'); toast(j.message||'IMAP 未实现'); opsMsg('warn',j.message); };
+$('keepaliveAllBtn').onclick=async()=>{ toast('开始保活全部账号'); await runKeepalive(null); };
+async function runKeepalive(emails){
+  opsMsg('warn','保活中…（refresh→access→GET /me+列信→轮换回写，并发≤5）');
+  $('kaWrap').style.display='none'; $('kaBody').innerHTML='';
+  try {
+    const j=await jpost('/api/keepalive',{emails});
+    if(j.implemented===false){ opsMsg('err',j.message||'保活不可用'); toast(j.message||'保活不可用'); return; }
+    if(!(j.results||[]).length){ opsMsg('warn',j.message||'无可保活账号'); toast(j.message||'无可保活账号'); return; }
+    const bd=(ok)=>ok?'<span class="badge success">是</span>':'<span class="badge danger">否</span>';
+    $('kaBody').innerHTML=j.results.map(r=>`<tr>
+      <td class="mono">${r.email||'—'}</td>
+      <td>${r.skip?'<span class="badge neutral">跳过</span>':bd(r.ok)}</td>
+      <td>${bd(r.profile)}</td><td>${bd(r.message)}</td>
+      <td>${r.rotated?'<span class="badge brand">已轮换</span>':'<span style="color:var(--fg-4)">—</span>'}</td>
+      <td style="font-size:11px;color:var(--fg-3)">${r.detail||''}</td></tr>`).join('');
+    $('kaWrap').style.display='block';
+    const done=`保活完成：存活 ${j.alive||0}/${j.total||0}，轮换 ${j.rotated||0}`;
+    opsMsg('ok', done+'（新 refresh_token 已回写）');
+    toast(done);
+    loadAccounts();
+  } catch(e){ opsMsg('err','保活失败: '+e); toast('保活失败'); }
+}
+$('replenishBtn').onclick=async()=>{ const emails=SELECTED.size?selectedEmails():null;
+  toast('开始回补收码池');
+  opsMsg('warn','回补中…（会 probe_token 校验 graph=200）');
+  try { const j=await jpost('/api/replenish',{emails});
+    if(j.implemented===false){ opsMsg('err',j.message||'不可用'); toast(j.message||'回补不可用'); return; }
+    const msg=`回补完成：新增 ${j.added}，重复 ${j.duplicate}，跳过 ${j.skipped}`;
+    opsMsg('ok', msg+'｜池文件 '+j.pool);
+    toast(msg);
+  } catch(e){ opsMsg('err','回补失败: '+e); toast('回补失败'); } };
+$('dbBackupBtn').onclick=async()=>{
+  opsMsg('warn','备份中…');
+  try {
+    const j=await jpost('/api/database/backup',{});
+    if(!j.ok) throw new Error(j.detail||'backup failed');
+    opsMsg('ok','已备份: '+j.path);
+    toast('数据库已备份');
+  } catch(e){ opsMsg('err','备份失败: '+e); toast('备份失败'); }
+};
+
+function proxyStatusBadge(st){
+  const s=st||'unknown';
+  const cls=s==='ok'?'ok':(s==='dead'?'err':'wait');
+  const lbl={ok:'可用',dead:'失效',unknown:'未检',checking:'检测中'}[s]||s;
+  return `<span class="st ${cls}">${lbl}</span>`;
+}
+function renderProxyStats(s){
+  if(!s) return;
+  const items=[['总数',s.total,'var(--fg)'],['代理商',s.providers||0,'var(--info)'],['启用',s.enabled,'var(--brand)'],['可用',s.ok,'var(--success)'],['失效',s.dead,'var(--danger)'],['未检',s.unknown,'var(--fg-3)'],['绑定',s.bindings,'var(--info)']];
+  $('proxyStatCards').innerHTML=items.map(([l,v,c])=>`<div class="card stat"><div class="lbl">${l}</div><div class="num" style="color:${c}">${v}</div></div>`).join('');
+  $('navProxyCount').textContent=s.enabled||0;
+  const banner=$('proxyEmptyBanner');
+  if(banner) banner.style.display=(s.total||0)===0?'block':'none';
+}
+function renderProxyAnalytics(a){
+  const el=$('proxyAnalyticsBody');
+  if(!el) return;
+  const rows=(a&&a.by_provider_country_reg_country)||[];
+  if(!rows.length){
+    const fallback=(a&&a.by_provider_country)||[];
+    if(!fallback.length){ el.innerHTML='<tr><td colspan="7" class="empty">暂无统计数据（完成注册/重登后自动记录）</td></tr>'; return; }
+    el.innerHTML=fallback.map(r=>`<tr>
+      <td>${escHtml(r.provider||'—')}</td>
+      <td>${escHtml(r.country||'—')}</td>
+      <td class="hint">—</td>
+      <td>${r.total||0}</td><td style="color:var(--success)">${r.success||0}</td><td style="color:var(--danger)">${r.fail||0}</td>
+      <td><b>${r.rate!=null?r.rate+'%':'—'}</b></td>
+    </tr>`).join('');
+    return;
+  }
+  el.innerHTML=rows.map(r=>`<tr>
+    <td>${escHtml(r.provider||'—')}</td>
+    <td>${escHtml(r.country||'—')}</td>
+    <td>${escHtml(r.reg_country||'—')}</td>
+    <td>${r.total||0}</td><td style="color:var(--success)">${r.success||0}</td><td style="color:var(--danger)">${r.fail||0}</td>
+    <td><b>${r.rate!=null?r.rate+'%':'—'}</b></td>
+  </tr>`).join('');
+}
+function renderProxyAnalyticsStats(a, ts){
+  const box=$('proxyAnalyticsStatCards');
+  if(!box) return;
+  const ov=(ts&&ts.overall)||{};
+  const items=[
+    ['事件数', (a&&a.event_count)||0, 'var(--fg)'],
+    ['区间成功率', ov.rate!=null?ov.rate+'%':'—', 'var(--brand)'],
+    ['成功', ov.success||0, 'var(--success)'],
+    ['失败', ov.fail||0, 'var(--danger)'],
+  ];
+  box.innerHTML=items.map(([l,v,c])=>`<div class="card stat"><div class="lbl">${l}</div><div class="num" style="color:${c}">${v}</div></div>`).join('');
+}
+function chartColorForLine(line, idx){
+  const cc=(line.country||'').trim().toUpperCase();
+  if(cc){
+    let h=0;
+    for(let i=0;i<cc.length;i++) h=(h*31+cc.charCodeAt(i))>>>0;
+    return CHART_PALETTE[h % CHART_PALETTE.length];
+  }
+  let h=0;
+  const id=(line.id||line.label||String(idx));
+  for(let i=0;i<id.length;i++) h=(h*31+id.charCodeAt(i))>>>0;
+  return CHART_PALETTE[h % CHART_PALETTE.length];
+}
+function renderProxyChartLegend(ts){
+  const box=$('proxyChartLegend');
+  if(!box) return;
+  const lines=(ts&&ts.lines)||[];
+  if(!lines.length){
+    box.innerHTML='<span class="lg-vol-hint">柱形=每日总事件量 · 悬停查看详情</span>';
+    return;
+  }
+  box.innerHTML=lines.map((ln,i)=>{
+    const col=chartColorForLine(ln,i);
+    const off=PROXY_CHART_HIDDEN.has(ln.id)?' off':'';
+    return `<button type="button" class="lg-item${off}" data-line-id="${escHtml(ln.id)}"><span class="lg-dot" style="background:${col}"></span>${escHtml(ln.label)}</button>`;
+  }).join('')+'<span class="lg-vol-hint">柱形=每日总事件量 · 点击图例显隐曲线</span>';
+  box.querySelectorAll('.lg-item').forEach(btn=>btn.onclick=()=>{
+    const id=btn.dataset.lineId;
+    if(PROXY_CHART_HIDDEN.has(id)) PROXY_CHART_HIDDEN.delete(id); else PROXY_CHART_HIDDEN.add(id);
+    renderProxyChartLegend(PROXY_STATS_TS);
+    renderProxyRateChart(PROXY_STATS_TS);
+  });
+}
+function showProxyChartTooltip(idx, clientX, clientY){
+  const tip=$('proxyChartTooltip');
+  const layout=PROXY_CHART_LAYOUT;
+  const ts=PROXY_STATS_TS;
+  if(!tip||!layout||!ts||idx<0) { if(tip) tip.classList.remove('show'); return; }
+  const day=layout.series[idx];
+  if(!day) { tip.classList.remove('show'); return; }
+  const lines=(ts.lines||[]).filter(ln=>!PROXY_CHART_HIDDEN.has(ln.id));
+  let html=`<div class="tt-date">${escHtml(day.date||'')}</div>`;
+  lines.forEach((ln,i)=>{
+    const p=(ln.points||[])[idx]||{};
+    if(!(p.total>0)) return;
+    const col=chartColorForLine(ln,i);
+    const rate=p.rate!=null?`${p.rate}%`:'—';
+    html+=`<div class="tt-row"><span class="tt-name"><span class="tt-dot" style="background:${col}"></span>${escHtml(ln.label)}</span><span class="tt-val">${rate} · ${p.success||0}/${p.total||0}</span></div>`;
+  });
+  html+=`<div class="tt-vol">当日总事件 ${day.total||0}（成功 ${day.success||0} / 失败 ${day.fail||0}）</div>`;
+  tip.innerHTML=html;
+  tip.classList.add('show');
+  const stage=$('proxyChartStage');
+  if(!stage) return;
+  const rect=stage.getBoundingClientRect();
+  let left=clientX-rect.left+12;
+  let top=clientY-rect.top-8;
+  const tw=tip.offsetWidth||220;
+  const th=tip.offsetHeight||120;
+  if(left+tw>rect.width-8) left=Math.max(8, left-tw-24);
+  if(top+th>rect.height-8) top=Math.max(8, top-th-12);
+  tip.style.left=left+'px';
+  tip.style.top=top+'px';
+}
+function bindProxyChartHover(){
+  const canvas=$('proxyRateChart');
+  if(!canvas||canvas.dataset.hoverBound) return;
+  canvas.dataset.hoverBound='1';
+  canvas.addEventListener('mousemove',(e)=>{
+    const layout=PROXY_CHART_LAYOUT;
+    if(!layout) return;
+    const rect=canvas.getBoundingClientRect();
+    const x=e.clientX-rect.left;
+    const {pad, innerW, n}=layout;
+    if(x<pad.l||x>rect.width-pad.r) { showProxyChartTooltip(-1); return; }
+    const ratio=(x-pad.l)/innerW;
+    const idx=Math.max(0, Math.min(n-1, Math.round(ratio*(n-1))));
+    showProxyChartTooltip(idx, e.clientX, e.clientY);
+  });
+  canvas.addEventListener('mouseleave',()=>showProxyChartTooltip(-1));
+}
+function renderProxyRateChart(ts){
+  const canvas=$('proxyRateChart');
+  const empty=$('proxyChartEmpty');
+  if(!canvas||!empty) return;
+  const series=(ts&&ts.series)||[];
+  const lines=(ts&&ts.lines)||[];
+  const hasData=series.some(p=>(p.total||0)>0);
+  canvas.style.display=hasData?'block':'none';
+  empty.style.display=hasData?'none':'flex';
+  $('proxyChartTooltip')&&$('proxyChartTooltip').classList.remove('show');
+  if(!hasData){ PROXY_CHART_LAYOUT=null; return; }
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
+  const W=Math.max(320, rect.width||canvas.clientWidth||600);
+  const H=260;
+  canvas.width=Math.floor(W*dpr);
+  canvas.height=Math.floor(H*dpr);
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const pad={l:44,r:18,t:16,b:30};
+  const innerW=W-pad.l-pad.r;
+  const innerH=H-pad.t-pad.b;
+  const n=series.length;
+  const maxVol=Math.max(1,...series.map(p=>p.total||0));
+  PROXY_CHART_LAYOUT={pad, innerW, innerH, n, series, W, H};
+  const gridCol=getComputedStyle(document.documentElement).getPropertyValue('--border-subtle').trim()||'#e2e8f0';
+  const fg3=getComputedStyle(document.documentElement).getPropertyValue('--fg-3').trim()||'#94a3b8';
+  ctx.strokeStyle=gridCol;
+  ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+innerH*i/4;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+  }
+  series.forEach((p,i)=>{
+    const x=pad.l+(n<=1?innerW/2:(innerW*i/(n-1)));
+    const h=(p.total||0)/maxVol*innerH*0.28;
+    ctx.fillStyle='rgba(148, 163, 184, 0.22)';
+    const bw=Math.max(4, Math.min(14, innerW/Math.max(n,1)*0.55));
+    ctx.fillRect(x-bw/2, pad.t+innerH-h, bw, h);
+  });
+  lines.forEach((ln,li)=>{
+    if(PROXY_CHART_HIDDEN.has(ln.id)) return;
+    const col=chartColorForLine(ln,li);
+    const pts=ln.points||[];
+    ctx.beginPath();
+    let started=false;
+    let lastX=null;
+    pts.forEach((p,i)=>{
+      if(!(p.total>0)||p.rate==null) { started=false; lastX=null; return; }
+      const x=pad.l+(n<=1?innerW/2:(innerW*i/(n-1)));
+      const y=pad.t+innerH*(1-p.rate/100);
+      if(!started){ ctx.moveTo(x,y); started=true; } else ctx.lineTo(x,y);
+      lastX=x;
+    });
+    ctx.strokeStyle=col;
+    ctx.lineWidth=ln.id==='overall'?2.5:2;
+    ctx.stroke();
+    pts.forEach((p,i)=>{
+      if(!(p.total>0)||p.rate==null) return;
+      const x=pad.l+(n<=1?innerW/2:(innerW*i/(n-1)));
+      const y=pad.t+innerH*(1-p.rate/100);
+      ctx.fillStyle=col;
+      ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+    });
+  });
+  ctx.fillStyle=fg3;
+  ctx.font='11px system-ui,sans-serif';
+  ctx.textAlign='center';
+  const step=Math.max(1, Math.ceil(n/7));
+  series.forEach((p,i)=>{
+    if(i%step!==0 && i!==n-1) return;
+    const x=pad.l+(n<=1?innerW/2:(innerW*i/(n-1)));
+    ctx.fillText((p.date||'').slice(5), x, H-10);
+  });
+  ctx.textAlign='right';
+  for(let i=0;i<=4;i++){
+    const y=pad.t+innerH*i/4+4;
+    ctx.fillText(String(100-Math.round(i*25)), pad.l-8, y);
+  }
+  bindProxyChartHover();
+}
+function fillStatsSelect(sel, values, cur, emptyLabel){
+  if(!sel) return;
+  const v=cur||sel.value||'';
+  sel.innerHTML=`<option value="">${escHtml(emptyLabel)}</option>`+(values||[]).map(x=>`<option value="${escHtml(x)}">${escHtml(x)}</option>`).join('');
+  sel.value=v;
+}
+async function loadProxyStats(){
+  try {
+    const prov=($('statsFilterProvider')&&$('statsFilterProvider').value)||'';
+    const country=($('statsFilterCountry')&&$('statsFilterCountry').value)||'';
+    const reg=($('statsFilterRegCountry')&&$('statsFilterRegCountry').value)||'';
+    const groupBy=($('statsGroupBy')&&$('statsGroupBy').value)||'provider';
+    const days=($('statsAnalyticsDays')&&$('statsAnalyticsDays').value)||'30';
+    const qs=new URLSearchParams();
+    if(prov) qs.set('provider', prov);
+    if(country) qs.set('country', country);
+    if(reg) qs.set('reg_country', reg);
+    qs.set('group_by', groupBy);
+    qs.set('days', days);
+    const q='?'+qs.toString();
+    const [aj, tj]=await Promise.all([
+      (await api('/api/proxy-pool/analytics'+q)).json(),
+      (await api('/api/proxy-pool/analytics/timeseries'+q)).json(),
+    ]);
+    const fo=(tj.timeseries&&tj.timeseries.filters)||{};
+    fillStatsSelect($('statsFilterProvider'), fo.providers, prov, '全部代理商');
+    fillStatsSelect($('statsFilterCountry'), fo.countries, country, '全部代理国');
+    fillStatsSelect($('statsFilterRegCountry'), fo.reg_countries, reg, '全部注册国');
+    renderProxyAnalyticsStats(aj.analytics, tj.timeseries);
+    renderProxyAnalytics(aj.analytics);
+    PROXY_STATS_TS = tj.timeseries;
+    if(PROXY_CHART_HIDDEN.size && !(PROXY_STATS_TS.lines||[]).some(ln=>PROXY_CHART_HIDDEN.has(ln.id))){
+      PROXY_CHART_HIDDEN.clear();
+    }
+    renderProxyChartLegend(PROXY_STATS_TS);
+    renderProxyRateChart(PROXY_STATS_TS);
+  } catch(e){ toast('统计加载失败: '+e); }
+}
+function renderProxyTable(){
+  if(!PROXY_ROWS.length){ $('proxyBody').innerHTML='<tr><td colspan="12" class="empty">暂无代理，点击「添加代理」</td></tr>'; return; }
+  $('proxyBody').innerHTML=PROXY_ROWS.map(p=>{
+    const st=p.stats||{};
+    const chk=PROXY_SEL.has(p.id)?'checked':'';
+  const en=p.enabled!==false;
+    return `<tr data-id="${escHtml(p.id)}">
+      <td><input type="checkbox" class="ck proxy-row-ck" data-id="${escHtml(p.id)}" ${chk}/></td>
+      <td>${escHtml(p.label||'—')}</td>
+      <td>${escHtml(p.provider||'—')}</td>
+      <td>${escHtml(p.country||'—')}</td>
+      <td class="mono" style="font-size:11px;">${escHtml(p.template_masked||'—')}</td>
+      <td>${p.has_sid?'<span class="badge brand">是</span>':'<span class="badge neutral">否</span>'}</td>
+      <td>${proxyStatusBadge(p.status)}</td>
+      <td class="mono" style="font-size:11px;">${escHtml(p.exit_ip||'—')}</td>
+      <td class="mono" style="font-size:11px;">${st.assigned||0}/${st.success||0}/${st.fail||0}</td>
+      <td class="cell-time" title="${escHtml(p.last_check_msg||'')}">${escHtml((p.last_check_at||'').replace('T',' ').slice(0,16)||'—')}</td>
+      <td><input type="checkbox" class="proxy-en-toggle" data-id="${escHtml(p.id)}" ${en?'checked':''}/></td>
+      <td><button type="button" class="btn sm proxy-check-one" data-id="${escHtml(p.id)}">预检</button></td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('.proxy-row-ck').forEach(c=>c.onchange=()=>{ c.checked?PROXY_SEL.add(c.dataset.id):PROXY_SEL.delete(c.dataset.id); });
+}
+function renderProxyBindings(rows){
+  if(!rows||!rows.length){ $('proxyBindBody').innerHTML='<tr><td colspan="6" class="empty">暂无绑定</td></tr>'; return; }
+  $('proxyBindBody').innerHTML=rows.map(b=>`<tr>
+    <td class="mono">${escHtml(b.email)}</td>
+    <td>${escHtml(b.proxy_label||b.proxy_id||'—')}</td>
+    <td class="mono" style="font-size:11px;">${escHtml(b.resolved_masked||'—')}</td>
+    <td>${escHtml(b.purpose||'—')}</td>
+    <td class="cell-time">${escHtml((b.assigned_at||'').replace('T',' ').slice(0,19))}</td>
+    <td><button type="button" class="btn sm danger proxy-unbind" data-email="${escHtml(b.email)}">解绑</button></td>
+  </tr>`).join('');
+}
+async function loadProxyPool(){
+  try {
+    const prov=($('proxyFilterProvider')&&$('proxyFilterProvider').value)||'';
+    const q=prov?('?provider='+encodeURIComponent(prov)):'';
+    const j=await (await api('/api/proxy-pool'+q)).json();
+    PROXY_ROWS=j.proxies||[];
+    renderProxyStats(j.stats);
+    renderProxyTable();
+    renderProxyBindings(j.bindings||[]);
+    if($('proxyPoolFile')) $('proxyPoolFile').textContent=(j.backend||'sqlite')+' · '+(j.file||'—');
+    const provSel=$('proxyFilterProvider');
+    if(provSel){
+      const cur=provSel.value;
+      const names=(j.providers||[]).map(p=>p.name).filter(Boolean);
+      provSel.innerHTML='<option value="">全部代理商</option>'+names.map(n=>`<option value="${escHtml(n)}">${escHtml(n)}</option>`).join('');
+      provSel.value=cur;
+    }
+    const s=j.settings||{};
+    if($('proxyStrategy')) $('proxyStrategy').value=s.strategy||'round_robin';
+    if($('proxyRequireHealthy')) $('proxyRequireHealthy').checked=!!s.require_healthy;
+    if($('proxySticky')) $('proxySticky').checked=s.sticky_per_account!==false;
+  } catch(e){ toast('代理池加载失败: '+e); }
+}
+$('proxyBtnRefresh').onclick=()=>loadProxyPool();
+if($('proxyFilterProvider')) $('proxyFilterProvider').onchange=()=>loadProxyPool();
+if($('statsBtnRefresh')) $('statsBtnRefresh').onclick=()=>loadProxyStats();
+if($('statsGroupBy')) $('statsGroupBy').onchange=()=>{ PROXY_CHART_HIDDEN.clear(); loadProxyStats(); };
+if($('statsFilterProvider')) $('statsFilterProvider').onchange=()=>loadProxyStats();
+if($('statsFilterCountry')) $('statsFilterCountry').onchange=()=>loadProxyStats();
+if($('statsFilterRegCountry')) $('statsFilterRegCountry').onchange=()=>loadProxyStats();
+if($('statsAnalyticsDays')) $('statsAnalyticsDays').onchange=()=>loadProxyStats();
+window.addEventListener('resize', ()=>{
+  if($('sec-proxy-stats')&&$('sec-proxy-stats').classList.contains('active')&&PROXY_STATS_TS) renderProxyRateChart(PROXY_STATS_TS);
+});
+if($('proxyBtnBackfillCountry')) $('proxyBtnBackfillCountry').onclick=async()=>{
+  try {
+    const j=await jpost('/api/proxy-pool/backfill-countries', {});
+    toast(`国家回填：更新 ${j.updated} 条，跳过 ${j.skipped}，仍为空 ${j.still_empty}`);
+    loadProxyPool();
+  } catch(e){ toast('回填失败: '+e.message); }
+};
+$('proxyBtnAdd').onclick=()=>{ $('proxyAddText').value=''; $('proxyAddLabel').value=''; $('proxyAddProvider').value=''; if($('proxyAddCountry')) $('proxyAddCountry').value=''; $('proxyAddModal').classList.add('show'); };
+$('proxyAddCancel').onclick=()=>$('proxyAddModal').classList.remove('show');
+$('proxyAddDo').onclick=async()=>{
+  const text=$('proxyAddText').value.trim();
+  if(!text){ toast('请输入代理'); return; }
+  try {
+    const j=await jpost('/api/proxy-pool',{text, label:$('proxyAddLabel').value.trim()||null, provider:$('proxyAddProvider').value.trim()||null, country:($('proxyAddCountry')&&$('proxyAddCountry').value.trim())||null});
+    toast('已添加 '+j.added+' 条');
+    $('proxyAddModal').classList.remove('show');
+    loadProxyPool();
+  } catch(e){ toast('添加失败: '+e.message); }
+};
+$('proxySaveSettings').onclick=async()=>{
+  try {
+    await jpost('/api/proxy-pool/settings',{
+      strategy:$('proxyStrategy').value,
+      require_healthy:$('proxyRequireHealthy').checked,
+      sticky_per_account:$('proxySticky').checked
+    });
+    toast('设置已保存');
+    loadProxyPool();
+  } catch(e){ toast('保存失败'); }
+};
+async function proxyCheckIds(ids){
+  if(!ids.length){ toast('未选中'); return; }
+  toast('预检中…');
+  const j=await jpost('/api/proxy-pool/check',{ids});
+  toast(`预检完成：${j.healthy}/${j.checked} 可用`);
+  loadProxyPool();
+}
+$('proxyBtnCheckAll').onclick=()=>proxyCheckIds(PROXY_ROWS.map(p=>p.id));
+$('proxyBtnCheckSel').onclick=()=>proxyCheckIds([...PROXY_SEL]);
+$('proxyBtnDelSel').onclick=async()=>{
+  const ids=[...PROXY_SEL];
+  if(!ids.length){ toast('未选中'); return; }
+  if(!confirm('删除 '+ids.length+' 条代理？')) return;
+  await jpost('/api/proxy-pool/delete',{ids});
+  PROXY_SEL.clear();
+  toast('已删除');
+  loadProxyPool();
+};
+$('proxyCkAll').onchange=(e)=>{
+  const on=e.target.checked;
+  PROXY_ROWS.forEach(p=>on?PROXY_SEL.add(p.id):PROXY_SEL.delete(p.id));
+  renderProxyTable();
+};
+$('proxyBody').addEventListener('click',async(e)=>{
+  const btn=e.target.closest('.proxy-check-one');
+  if(btn) return proxyCheckIds([btn.dataset.id]);
+});
+$('proxyBody').addEventListener('change',async(e)=>{
+  const t=e.target.closest('.proxy-en-toggle');
+  if(!t) return;
+  await fetch('/api/proxy-pool/'+encodeURIComponent(t.dataset.id),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:t.checked})});
+  loadProxyPool();
+});
+$('proxyBindBody').addEventListener('click',async(e)=>{
+  const btn=e.target.closest('.proxy-unbind');
+  if(!btn) return;
+  await jpost('/api/proxy-pool/unbind',{emails:[btn.dataset.email]});
+  toast('已解绑');
+  loadProxyPool();
+});
+
+loadConfig(); health(); loadAccounts(); loadJobs(); loadProxyPool();
+</script>
+</body>
+</html>
